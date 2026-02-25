@@ -46,7 +46,7 @@ spec.yaml  ->  install  ->  run automatically  ->  notify user
 
 DHP is **runtime-agnostic**. The spec defines what the agent does and when it runs; the runtime executes it.
 
-**Compatible runtime:** [Halo](https://halo.app)
+**Compatible runtime:** [Halo](https://github.com/openkursar/hello-halo/)
 
 ---
 
