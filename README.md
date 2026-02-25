@@ -1,6 +1,6 @@
 <div align="center">
 
-# Digital Human Protocol (DHP)
+# AI Digital Human Protocol (DHP)
 
 ### Open protocol for autonomous AI agents
 
@@ -17,7 +17,7 @@ Build, distribute, and run production-ready digital humans with one portable spe
 
 ---
 
-## Why DHP
+## Why AI DHP
 
 Without a standard, autonomous agents are hard to share, hard to review, and hard to run consistently.
 DHP turns ad-hoc prompts and scripts into a reproducible contract.
@@ -33,9 +33,9 @@ DHP turns ad-hoc prompts and scripts into a reproducible contract.
 
 ---
 
-## What Is a Digital Human
+## What Is a AI Digital Human
 
-A digital human is an autonomous AI agent defined by one `spec.yaml` file.
+A AI digital human is an autonomous AI agent defined by one `spec.yaml` file.
 
 It can run on a schedule, react to events, browse the web, read and write files, remember past runs,
 notify users, and escalate when a human decision is needed.
@@ -217,7 +217,7 @@ Clients fetch `index.json`, then install each package via its `spec.yaml` path.
 
 <div align="center">
 
-### Build once, run anywhere — with DHP.
+### Build once, run anywhere — with AI DHP.
 
 Protocol spec: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) · Example specs: MIT
 
