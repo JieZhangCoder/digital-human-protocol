@@ -1,6 +1,6 @@
 spec_version: "1"
 name: Xiaohongshu Keyword Monitor
-version: "1.0.0"
+version: 4.0.0
 author: openkursar
 description: Passively monitors Xiaohongshu for new posts mentioning your brand, product, or topic — surfaces what people are saying without any interaction.
 type: automation
@@ -9,56 +9,68 @@ system_prompt: |-
   You are a brand and content monitoring assistant. Your job is to search Xiaohongshu for recent posts mentioning the configured keywords, and report new ones as a clean digest.
 
   ## Core rules
-  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - You MUST use AI Browser for all operations. Do NOT use WebFetch or any other network tool.
   - This is a passive monitoring role — do NOT like, comment, follow, or interact with any content.
-  - Only report posts you can directly observe on the page. Never fabricate titles, like counts, or author names.
+  - Never fabricate titles, like counts, or author names.
   - Skip any post ID already in `memory.seen_post_ids`.
-  - If the page requires login or shows a CAPTCHA, report the issue and end the run.
+  - NEVER write inline JavaScript with browser_evaluate to collect data. Always use browser_run with the skill file.
 
-  ## Step 1 — Open search results
-  Use `browser_new_page` to open:
-  `https://www.xiaohongshu.com/search_result?keyword={keywords}&type=51`
-  (Replace `{keywords}` with the configured value, URL-encoded if needed.)
-  `browser_snapshot` — confirm search results are visible.
+  ## Step 1 — Collect data via xhs-search skill
+  First, call browser_navigate to open the Xiaohongshu search results page. Use the configured `keywords` value URL-encoded in the query string, for example:
+  https://www.xiaohongshu.com/search_result?keyword=<keywords>&source=web_search_result_notes
 
-  ## Step 2 — Collect posts
-  Scan the visible post cards in the accessibility tree (each Section is a card).
-  For each post collect:
-  - Title or first line of text
-  - Like count (点赞数)
-  - Author name
-  - Post ID (from the card's link element)
-  - Relative time (if visible, e.g. "3小时前", "昨天")
+  Wait for the page to finish loading (search results must be visible).
 
-  Collect up to 30 posts. Do not click into any post.
+  Then call browser_run exactly as follows — substituting the configured values for sort_by and time_range:
+  - file: ".claude/skills/xhs-search/index.js"
+  - params.sort_by: the configured sort_by value
+  - params.time_range: the configured time_range value
+  - params.pages: 2
 
-  ## Step 3 — Filter posts
-  Remove a post if ANY of the following:
+  Do NOT use browser_evaluate. Do NOT write any custom JavaScript. The skill file handles everything.
+
+  The script handles login detection, XHR interception, search execution, and pagination
+  automatically. It returns structured JSON:
+  ```json
+  {
+    "success": true,
+    "logged_in": true,
+    "user": { "user_id": "...", "nickname": "..." },
+    "posts": [
+      { "id": "...", "title": "...", "author": "...", "liked_count": 100, "collected_count": 50, "comment_count": 10, "type": "normal", "link": "..." }
+    ],
+    "total": 40,
+    "has_more": true
+  }
+  ```
+
+  - If `success` is false and `logged_in` is false → escalate: "请先登录小红书，然后重新运行。" and stop.
+  - If `success` is false for other reasons → report the error and stop.
+
+  ## Step 2 — Filter posts
+  From the returned posts, remove any post if:
   - Post ID is already in `memory.seen_post_ids`
-  - Like count is below `min_likes`
-  - Post appears to be a paid promotion or advertisement (title contains "广告", "合作", "赞助" etc.)
+  - `liked_count` is below `min_likes`
+  - Title contains any term in `exclude_keywords` (default: "广告, 合作, 赞助")
 
   If `positive_keywords` is configured: only keep posts whose title contains at least one of these terms.
-  If `exclude_keywords` is configured: remove posts whose title contains any of these terms.
 
-  ## Step 4 — Rank and select
-  From filtered posts, select up to `max_posts_in_report`, sorted by:
-  1. Most likes first
+  ## Step 3 — Rank and select
+  From filtered posts, select up to `max_posts_in_report`, sorted by most likes first.
 
-  ## Step 5 — Generate report (Markdown)
-  Summary: keyword monitored, date range, total scanned, after filtering.
+  ## Step 4 — Generate report (Markdown)
+  Summary: keyword monitored, run time, total scanned, after filtering.
 
   For each selected post:
-  - Title excerpt
+  - Title (with link)
   - Author
   - Like count
-  - Relative time (if available)
-  - Sentiment note: one word — Positive / Negative / Neutral / Mixed (based on title tone only)
+  - Sentiment: one word — Positive / Negative / Neutral / Mixed (title tone only)
 
   If no new qualifying posts found, output "No new posts matching your criteria this run."
   Output language follows `output_language` config.
 
-  ## Step 6 — Update memory
+  ## Step 5 — Update memory
   - Append all collected post IDs (not just selected ones) to `memory.seen_post_ids`
   - Trim `memory.seen_post_ids` to the most recent 5000 entries
   - Set `memory.last_run_at` to now
@@ -66,15 +78,46 @@ system_prompt: |-
   ## Constraints
   - Do not open individual post pages
   - Do not interact with any post (no likes, comments, saves, or follows)
-  - Do not use browser_evaluate (blocked by Xiaohongshu CSP)
   - Sentiment assessment is title-only and approximate — do not overstate confidence
 config_schema:
   - key: keywords
     label: Search Keywords
     type: string
     required: true
-    placeholder: "品牌名 OR 产品名"
+    placeholder: 品牌名 OR 产品名
     description: The keyword or brand name to monitor on Xiaohongshu (e.g. your brand name, product name, or topic)
+  - key: sort_by
+    label: Sort Order
+    type: select
+    required: true
+    default: time_descending
+    options:
+      - label: Latest
+        value: time_descending
+      - label: Most Likes
+        value: popularity_descending
+      - label: Most Comments
+        value: comment_descending
+      - label: Most Collections
+        value: collect_descending
+      - label: General (Recommended)
+        value: general
+    description: How to sort search results — "Latest" is recommended for monitoring new posts
+  - key: time_range
+    label: Time Range
+    type: select
+    required: true
+    default: 一周内
+    options:
+      - label: Any time
+        value: 不限
+      - label: Last 24 hours
+        value: 一天内
+      - label: Last week
+        value: 一周内
+      - label: Last 6 months
+        value: 半年内
+    description: Only show posts published within this time range
   - key: min_likes
     label: Min Likes
     type: number
@@ -86,14 +129,14 @@ config_schema:
     type: string
     required: false
     default: ""
-    placeholder: "推荐, 好用, 测评"
+    placeholder: 推荐, 好用, 测评
     description: Comma-separated terms — only keep posts containing at least one of these; leave blank to show all
   - key: exclude_keywords
     label: Exclude Keywords
     type: string
     required: false
-    default: "广告, 合作, 赞助"
-    placeholder: "广告, 合作"
+    default: 广告, 合作, 赞助
+    placeholder: 广告, 合作
     description: Comma-separated terms — posts containing these are skipped (default filters out ads)
   - key: max_posts_in_report
     label: Max Posts in Report
@@ -124,7 +167,11 @@ subscriptions:
 requires:
   mcps:
     - id: ai-browser
-      reason: Required to search Xiaohongshu and read post cards from the results page
+      reason: Required for browser_navigate and browser_run to execute the xhs-search skill
+  skills:
+    - id: xhs-search
+      reason: Browser script that collects search data from Xiaohongshu via XHR interception
+      bundled: true
 memory_schema:
   seen_post_ids:
     type: array
@@ -144,14 +191,18 @@ escalation:
 store:
   slug: xiaohongshu-keyword-monitor
   category: social
-  tags: [xiaohongshu, brand, monitor, social, keyword]
+  tags:
+    - xiaohongshu
+    - brand
+    - monitor
+    - social
+    - keyword
   locale: zh-CN
-  min_app_version: "0.5.0"
+  min_app_version: 0.5.0
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol
   meta:
     rank: 1
-
 i18n:
   zh-CN:
     name: 小红书关键词监控
@@ -160,23 +211,39 @@ i18n:
       keywords:
         label: 监控关键词
         description: 在小红书上搜索的品牌名、产品名或关键词
-        placeholder: "品牌名 OR 产品名"
+        placeholder: 品牌名 OR 产品名
+      sort_by:
+        label: 排序方式
+        description: 搜索结果排序方式——"最新"适合监控新帖
+        options:
+          time_descending: 最新
+          popularity_descending: 最多点赞
+          comment_descending: 最多评论
+          collect_descending: 最多收藏
+          general: 综合（推荐）
+      time_range:
+        label: 发布时间
+        description: 仅显示该时间范围内发布的帖子
+        options:
+          不限: 不限
+          一天内: 一天内
+          一周内: 一周内
+          半年内: 半年内
       min_likes:
         label: 最低点赞数
         description: 仅包含点赞数达到此值的帖子
       positive_keywords:
         label: 必须包含的词
         description: 逗号分隔，标题中必须含有其中至少一个词；留空则不过滤
-        placeholder: "推荐, 好用, 测评"
+        placeholder: 推荐, 好用, 测评
       exclude_keywords:
         label: 排除关键词
         description: 逗号分隔，标题含有这些词的帖子将被过滤（默认过滤广告合作）
-        placeholder: "广告, 合作"
+        placeholder: 广告, 合作
       max_posts_in_report:
         label: 报告最大帖子数
         description: 每次推送摘要中最多展示的帖子数量
       output_language:
         label: 输出语言
         options:
-          en-US: English
           zh-CN: 中文

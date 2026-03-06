@@ -25,6 +25,7 @@ This document is the normative reference for all fields in the **Digital Human P
 13. [permissions — Runtime Permissions](#13-permissions--runtime-permissions)
 14. [Type Constraints](#14-type-constraints)
 15. [Backward Compatibility](#15-backward-compatibility)
+16. [browser_login — Login Guidance](#16-browser_login--login-guidance)
 
 ---
 
@@ -84,6 +85,7 @@ subscriptions:
 | `recommended_model` | `string` | No | Suggested model for this agent. Informational only — not enforced at runtime. |
 | `store` | `StoreMetadata` | No | Registry and distribution metadata. See [Section 11](#11-store--registry-metadata). |
 | `i18n` | `Record<string, I18nLocaleBlock>` | No | Locale-specific display text overrides for `name`, `description`, and `config_schema` labels. See [Section 12](#12-i18n--localization-overrides). |
+| `browser_login` | `BrowserLoginEntry[]` | No | Websites the user should log into before the automation runs. `automation` only. See [Section 16](#16-browser_login--login-guidance). |
 
 ---
 
@@ -751,3 +753,52 @@ subscriptions:
 ```
 
 Both forms are accepted and produce identical results.
+
+---
+
+## 16. `browser_login` — Login Guidance
+
+Declares websites the user needs to log into before the automation can run. This is a declarative hint for the runtime UI — it does not affect execution logic or permissions.
+
+**Only `type: automation` may declare `browser_login`.**
+
+```yaml
+browser_login:
+  - url: "https://www.xiaohongshu.com"
+    label: "小红书"
+  - url: "https://creator.xiaohongshu.com"
+    label: "小红书创作者中心"
+```
+
+### `BrowserLoginEntry`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `url` | `string` | **Yes** | URL the user should navigate to for login. Must be a valid URL. |
+| `label` | `string` | **Yes** | Website display name shown in the login guidance UI. |
+
+### Semantics
+
+- Purely declarative — the spec author states "this automation needs the user to be logged into these websites"
+- The runtime uses this field to render login guidance UI (e.g. a notice bar, browser shortcuts)
+- Does not affect execution logic, permissions, or state management
+- Does not perform login detection
+
+### Backward Compatibility
+
+- Runtimes that do not recognize `browser_login` will strip it during schema validation — no impact on installation or execution
+- Specs without `browser_login` will not show login guidance; the runtime may still show browser access based on `permissions: ["ai-browser"]`
+
+### i18n Support
+
+Labels can be translated via the `i18n` block, keyed by URL:
+
+```yaml
+i18n:
+  zh-CN:
+    browser_login:
+      "https://www.xiaohongshu.com":
+        label: "小红书"
+      "https://creator.xiaohongshu.com":
+        label: "小红书创作者中心"
+```

@@ -1,144 +1,180 @@
 spec_version: "1"
-name: Bilibili Comment Replier
-version: "1.0.0"
+name: B站评论自动回复
+version: "2.0.0"
 author: openkursar
-description: Monitors a Bilibili video for new comments and auto-replies as the creator — friendly, on-topic, and duplicate-free.
+description: 监控 B 站消息中心的评论通知，以 UP 主身份对新评论发送有针对性的回复，避免重复。
 type: automation
 icon: social
 system_prompt: |-
-  You are an assistant acting on behalf of a Bilibili creator. Your job is to review new comments on their video and post natural, friendly replies.
+  你是一名 B 站 UP 主的回复助手，以 UP 主身份回复"回复我的"消息中心里的评论。
+  严格按照下面的步骤执行，不要跳步，不要自由发挥。
 
-  ## Core rules
-  - You MUST use AI Browser to open the video page and interact with the comment section. Do NOT use WebFetch or any other network tool.
-  - Only reply to comments you can directly read on the page. Never fabricate comment content or comment IDs.
-  - Do NOT reply to the same comment twice. Check both the page (visible replies from the creator) AND `memory.replied_comments` before acting.
-  - Limit replies to `max_replies_per_run` per run.
-  - If the page fails to load or comments are inaccessible, report the failure clearly and end the run.
+  ## 禁止事项
+  - 禁止用 browser_click / browser_fill 操作任何 DOM 元素
+  - 禁止自己拼接任何 B 站 URL
+  - 禁止用 Skill 工具或 Task 工具调用 bili-get-messages / bili-reply；只能用 browser_run
+  - bili-reply 返回 success: false → 记录错误，跳过，禁止任何补救操作
+  - 禁止回复 memory.replied_ids 中已记录的通知 ID
 
-  ## Step 1 — Open the video and load comments
-  Use AI Browser to open `video_url`.
-  Navigate to the comment section. Switch sort order to "Newest" (最新) to surface recent comments.
-  Scroll as needed to collect the visible comment list (top-level comments only, not nested replies).
+  ## 配置
+  从 User Configuration（JSON）读取。缺失项使用默认值：
+  - creator_persona: "B 站 UP 主"
+  - max_replies_per_run: 5
+  - reply_signature: ""
 
-  ## Step 2 — Filter: identify comments that need a reply
-  For each comment, skip it if ANY of the following are true:
-  - The comment ID is already in `memory.replied_comments`
-  - The comment already has a visible reply from the creator account
-  - The comment is spam, meaningless text, or emoji-only with no substance
+  ## 第一步：打开消息中心
 
-  Prioritize (reply first):
-  - Questions from viewers
-  - Positive feedback with specific detail
-  - Comments that raise a discussion point worth acknowledging
+  1. browser_new_page({ url: "https://message.bilibili.com/#/reply" })
+  2. browser_wait_for({ text: "回复我的", timeout: 15000 })
+     - 超时或失败 → 报告"消息页加载失败"并停止
 
-  ## Step 3 — Write and post replies
-  Reply style:
-  - Natural and conversational — write like a real creator, not a bot
-  - Concise: 1–2 sentences maximum
-  - Specific to the comment content — no generic templates
-  - Emoji are allowed but keep them minimal
-  - If `reply_signature` is non-empty, append it to every reply on a new line
-  - If `creator_name` is provided, use it as context for your voice
+  ## 第二步：获取评论通知列表
 
-  Reply strategy by comment type:
-  - Question: answer directly and briefly; if complex, invite a DM
-  - Positive feedback: thank genuinely and add one specific detail
-  - Bug or complaint: acknowledge and ask them to DM for follow-up
-  - Discussion / opinion: add one short additional perspective
+  1. browser_run({ file: ".claude/skills/bili-get-messages/index.js", params: { pages: 1 } })
+  2. 检查返回值：
+     - success: false, logged_in: false → 报告"未登录 B 站，请先在浏览器中登录"并停止
+     - success: false → 报告 error 字段内容并停止
+     - success: true → 拿到 notifications 数组，每条包含：
+       id, user_nickname, comment, replied_to, root_content,
+       notification_type, video_title, video_desc, video_url,
+       oid, reply_type, root, parent, is_multi, counts
 
-  Post the reply using the AI Browser reply UI on that comment.
+  ## 第三步：筛选需要回复的通知
 
-  ## Step 4 — Update memory
-  After each successful reply:
-  - Append the comment ID to `memory.replied_comments`
-  - Stop after `max_replies_per_run` total replies this run
+  从 notifications 中**去掉**以下条目：
+  - notification.id 已在 memory.replied_ids 中的（已回复）
+  - comment 是无实质内容的（以下任意一种）：
+    - 纯表情包或单个 emoji
+    - "UP主加油！看好你噢~" 之类的程式化应援
+    - "码一下" / "先收藏" / "插个眼" 等无提问的纯收藏留言
+  - comment 是明显广告或人身攻击
 
-  ## Step 5 — Generate run report (Markdown)
-  Report:
-  - Number of new comments scanned
-  - Number of replies posted (with comment excerpt and reply text)
-  - Number skipped (reason categories: already replied, spam, limit reached)
-  Output language follows `output_language` config.
+  按 reply_time 从新到旧排序，取前 max_replies_per_run 条。
+  若一条都没有 → 报告"本次没有需要回复的新评论"并结束。
 
-  ## Constraints
-  - Do not promote products or services in replies
-  - Do not engage with hostile or abusive comments — skip them silently
-  - Do not open external links found in comments
-  - Do not fabricate facts about the video content or the creator
+  ## 第四步：逐条生成并发送回复
+
+  对筛选出的**每条** notification，严格按以下 4 小步顺序执行：
+
+  **4a** 阅读背景（只读，不做任何浏览器操作）：
+  - 视频/文章标题：notification.video_title
+  - 视频/文章简介：notification.video_desc（了解内容主题）
+  - 评论上下文链：notification.root_content → notification.replied_to → notification.comment
+  - UP 主人设：creator_persona
+
+  **4b** 根据背景写一条回复：
+  - 中文，不超过 100 字
+  - 直接回应评论的具体内容，禁止"谢谢支持""感谢关注"等空泛套话
+  - 回复风格参考：
+    - 技术问题 → 简短解答，复杂问题可引导"可以私信我详细说说"
+    - 正面反馈 → 真诚回应并补充一句有信息量的话
+    - Bug / 吐槽 → 感谢反馈并告知如何跟进（如"可以在 GitHub 提 issue"）
+    - 讨论观点 → 加一句有价值的延伸
+  - 若 reply_signature 非空，在回复结尾另起一行追加 reply_signature
+
+  **4c** 发送回复（严格使用 notification 中的字段值，禁止修改）：
+  browser_run({ file: ".claude/skills/bili-reply/index.js", params: { oid: <notification.oid>, reply_type: <notification.reply_type>, root: <notification.root>, parent: <notification.parent>, message: "<回复内容>" } })
+
+  **4d** 处理结果：
+  - success: true → 将 notification.id 追加到已回复列表
+  - success: false, code=12015 → 频率限制，停止本次所有后续回复，跳到第五步
+  - success: false, 其他 → 记录 error，跳过本条，继续下一条
+
+  ## 第五步：更新记忆并报告
+
+  更新 memory：
+  - 将本次成功回复的 notification.id 追加到 replied_ids
+    （保留最近 5000 条，超出时删除最早的条目）
+  - 设置 last_run_at 为当前时间
+
+  输出 Markdown 报告：
+  - 通知总数 / 筛选后数量 / 成功回复数 / 跳过数
+  - 每条成功回复：评论者昵称 + 原评论摘要（30 字以内）+ 发送的回复内容
+  - 跳过原因汇总（分类统计：已回复 / 无实质内容 / 发送失败 / 频率限制）
+
 config_schema:
-  - key: video_url
-    label: Video URL
-    type: url
-    required: true
-    placeholder: "https://www.bilibili.com/video/BVxxxxxxxx"
-    description: The Bilibili video page URL to monitor for new comments
-  - key: creator_name
-    label: Creator Name
-    type: string
+  - key: creator_persona
+    label: UP主人设
+    type: text
     required: false
     default: ""
-    placeholder: "My Channel"
-    description: Optional display name of the creator — used to personalize the reply voice
+    placeholder: "我是一名独立开发者，专注于 AI Agent 桌面工具开发，主要讲解 Halo 开源项目的使用和原理。"
+    description: 描述 UP 主的内容方向和专业背景，引导 AI 生成符合人设的回复语气
   - key: reply_signature
-    label: Reply Signature
+    label: 回复签名
     type: string
     required: false
-    default: ""
-    placeholder: "— Replied by AI assistant"
-    description: Optional text appended to every reply; leave blank for no signature
+    default: "——halo b 站数字人"
+    placeholder: "——AI 助手代回"
+    description: 可选，每条回复结尾附加的文字；留空则不添加签名
   - key: max_replies_per_run
-    label: Max Replies per Run
+    label: 单次最大回复数
     type: number
     required: true
     default: 5
-    description: Maximum number of comments to reply to in a single run
+    description: 每次运行最多回复的评论条数（建议不超过 10，避免触发频率限制）
   - key: output_language
-    label: Output Language
+    label: 输出语言
     type: select
     required: true
-    default: en-US
+    default: zh-CN
     options:
-      - label: English
-        value: en-US
       - label: 中文
         value: zh-CN
+      - label: English
+        value: en-US
+
 subscriptions:
   - id: comment-check
     source:
       type: schedule
       config:
-        every: 1h
+        every: 2h
     frequency:
-      default: 1h
+      default: 2h
       min: 30m
-      max: 6h
+      max: 12h
+
 requires:
   mcps:
     - id: ai-browser
-      reason: Required to open the Bilibili video page, read comments, and post replies
+      reason: 打开 B 站消息中心页面、执行 Skill 脚本（获取通知、发送回复）
+  skills:
+    - id: bili-get-messages
+      reason: 通过直接 fetch 调用 B 站 msgfeed API，返回结构化评论通知列表
+      bundled: true
+    - id: bili-reply
+      reason: 通过直接 POST 到 B 站 reply/add API 发送回复，并验证成功
+      bundled: true
+
 memory_schema:
-  replied_comments:
+  replied_ids:
     type: array
-    description: Comment IDs that have already been replied to — prevents duplicate replies across runs
+    description: 已回复的通知 ID 列表，防止重复回复（保留最近 5000 条）
   last_run_at:
     type: date
-    description: Timestamp of the most recent successful run
-  last_run_summary:
-    type: object
-    description: Summary of the last run (comments scanned, replies posted, skipped counts)
+    description: 最近一次成功运行的时间戳
+
 output:
   notify:
     system: true
   format: markdown
+
+browser_login:
+  - url: "https://www.bilibili.com"
+    label: "哔哩哔哩"
+
 permissions:
   - ai-browser
+
 escalation:
   enabled: true
   timeout_hours: 24
+
 store:
   slug: bilibili-comment-replier
   category: social
-  tags: [bilibili, comments, auto-reply, creator, social]
+  tags: [bilibili, comments, auto-reply, creator, social, B站, 评论]
   locale: zh-CN
   min_app_version: "0.5.0"
   license: MIT
@@ -147,27 +183,23 @@ store:
     rank: 2
 
 i18n:
-  zh-CN:
-    name: B站评论自动回复
-    description: 监控指定B站视频的新评论，以创作者身份自动发送友好、有针对性的回复，并避免重复。
+  en-US:
+    name: Bilibili Comment Replier
+    description: Monitors the Bilibili message center for comment notifications and auto-replies as the creator — contextual, friendly, and duplicate-free.
     config_schema:
-      video_url:
-        label: 视频链接
-        description: 需要监控评论的B站视频页面链接
-        placeholder: "https://www.bilibili.com/video/BVxxxxxxxx"
-      creator_name:
-        label: UP主名称
-        description: 可选，UP主的频道名称，用于个性化回复语气
-        placeholder: "我的频道"
+      creator_persona:
+        label: Creator Persona
+        description: Describe the creator's content focus and expertise to guide the AI's reply tone
+        placeholder: "I'm an indie developer focused on AI Agent desktop tools, mainly explaining the Halo open-source project."
       reply_signature:
-        label: 回复签名
-        description: 可选，每条回复结尾附加的文字；留空则不添加签名
-        placeholder: "——AI 助手代回"
+        label: Reply Signature
+        description: Optional text appended to every reply; leave blank for no signature
+        placeholder: "— Replied by AI assistant"
       max_replies_per_run:
-        label: 单次最大回复数
-        description: 每次运行最多回复的评论数量
+        label: Max Replies per Run
+        description: Maximum number of comments to reply to in a single run (keep ≤10 to avoid rate limits)
       output_language:
-        label: 输出语言
+        label: Output Language
         options:
-          en-US: English
           zh-CN: 中文
+          en-US: English
