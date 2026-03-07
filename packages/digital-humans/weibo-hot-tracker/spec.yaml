@@ -78,15 +78,15 @@ config_schema:
     placeholder: "AI, LLM, Agent"
     description: Comma-separated keywords to prioritize in the report; leave blank to show all
   - key: output_language
-    label: Output Language
+    label: 输出语言
     type: select
     required: true
-    default: en-US
+    default: zh-CN
     options:
-      - label: English
-        value: en-US
       - label: 中文
         value: zh-CN
+      - label: English
+        value: en-US
 subscriptions:
   - id: hot-topics
     source:

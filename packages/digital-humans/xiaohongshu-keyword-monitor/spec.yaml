@@ -145,15 +145,15 @@ config_schema:
     default: 10
     description: Maximum number of posts to include in each digest
   - key: output_language
-    label: Output Language
+    label: 输出语言
     type: select
     required: true
-    default: en-US
+    default: zh-CN
     options:
-      - label: English
-        value: en-US
       - label: 中文
         value: zh-CN
+      - label: English
+        value: en-US
 subscriptions:
   - id: keyword-scan
     source:

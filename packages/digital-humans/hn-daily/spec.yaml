@@ -69,15 +69,15 @@ config_schema:
     default: true
     description: Whether to include the original article link alongside the HN link
   - key: output_language
-    label: Output Language
+    label: 输出语言
     type: select
     required: true
-    default: en-US
+    default: zh-CN
     options:
-      - label: English
-        value: en-US
       - label: 中文
         value: zh-CN
+      - label: English
+        value: en-US
 subscriptions:
   - id: daily-summary
     source:
