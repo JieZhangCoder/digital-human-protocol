@@ -183,6 +183,10 @@ output:
   notify:
     system: true
   format: markdown
+browser_login:
+  - url: "https://www.xiaohongshu.com"
+    label: "小红书"
+
 permissions:
   - ai-browser
 escalation:
