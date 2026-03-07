@@ -131,6 +131,8 @@ store:
   min_app_version: "0.5.0"
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol
+  meta:
+    rank: 3
 
 i18n:
   zh-CN:

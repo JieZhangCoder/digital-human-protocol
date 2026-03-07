@@ -1,26 +1,28 @@
 {
   "version": 1,
-  "generated_at": "2026-02-25T03:10:09.231Z",
+  "generated_at": "2026-03-07T10:46:46.520Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
       "slug": "bilibili-comment-replier",
-      "name": "Bilibili Comment Replier",
-      "version": "1.0.0",
+      "name": "B站评论自动回复",
+      "version": "2.0.0",
       "author": "openkursar",
-      "description": "Monitors a Bilibili video for new comments and auto-replies as the creator — friendly, on-topic, and duplicate-free.",
+      "description": "监控 B 站消息中心的评论通知，以 UP 主身份对新评论发送有针对性的回复，避免重复。",
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/bilibili-comment-replier",
-      "size_bytes": 6365,
-      "checksum": "sha256:05381d30cc9519495f979599c0b381a53153d53cd1ef0991c05593971a040d9c",
+      "size_bytes": 17728,
+      "checksum": "sha256:d3895f45c4dd4d858d3218552749ff6815c3d054596908ad99d611054fd58c20",
       "category": "social",
       "tags": [
         "bilibili",
         "comments",
         "auto-reply",
         "creator",
-        "social"
+        "social",
+        "B站",
+        "评论"
       ],
       "icon": "social",
       "locale": "zh-CN",
@@ -28,11 +30,15 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "requires_skills": [
+        "bili-get-messages",
+        "bili-reply"
+      ],
+      "updated_at": "2026-03-07T10:41:31.192Z",
       "i18n": {
-        "zh-CN": {
-          "name": "B站评论自动回复",
-          "description": "监控指定B站视频的新评论，以创作者身份自动发送友好、有针对性的回复，并避免重复。"
+        "en-US": {
+          "name": "Bilibili Comment Replier",
+          "description": "Monitors the Bilibili message center for comment notifications and auto-replies as the creator — contextual, friendly, and duplicate-free."
         }
       },
       "meta": {
@@ -48,8 +54,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/boss-job-monitor",
-      "size_bytes": 6617,
-      "checksum": "sha256:27ba124c56e976068fca44fef82a04ea649866999f44c8e3f7f8cf7607698ac6",
+      "size_bytes": 6597,
+      "checksum": "sha256:0461f8681f0ebdbe80a5fef1b51d1c212e6d26c6bbd499e49a14d3b022cc65e9",
       "category": "productivity",
       "tags": [
         "jobs",
@@ -64,15 +70,12 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "updated_at": "2026-03-07T10:45:50.157Z",
       "i18n": {
         "zh-CN": {
           "name": "Boss直聘职位监控",
           "description": "每天自动在Boss直聘搜索符合条件的新职位，按匹配度排序后推送精选摘要，告别反复刷新。"
         }
-      },
-      "meta": {
-        "rank": 5
       }
     },
     {
@@ -98,7 +101,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "updated_at": "2026-02-24T11:53:22.966Z",
       "i18n": {
         "zh-CN": {
           "name": "Changelog 自动生成器",
@@ -133,7 +136,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "updated_at": "2026-02-24T11:47:34.032Z",
       "i18n": {
         "zh-CN": {
           "name": "CI 构建失败分析师",
@@ -167,7 +170,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "updated_at": "2026-02-24T10:43:05.213Z",
       "i18n": {
         "zh-CN": {
           "name": "A股港股日报",
@@ -199,7 +202,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-25T03:10:08.513Z",
+      "updated_at": "2026-02-24T11:56:02.063Z",
       "i18n": {
         "zh-CN": {
           "name": "代码复杂度守卫",
@@ -232,7 +235,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T10:45:20.693Z",
       "i18n": {
         "zh-CN": {
           "name": "每日天气穿搭助手",
@@ -264,7 +267,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T11:51:24.154Z",
       "i18n": {
         "zh-CN": {
           "name": "依赖漏洞侦察兵",
@@ -281,8 +284,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/douyin-comment-replier",
-      "size_bytes": 6669,
-      "checksum": "sha256:fdf9374c64ad4ed1aa170e5e74079cd54ae1b3881e25be45062ba77e5fdbf248",
+      "size_bytes": 6649,
+      "checksum": "sha256:76ca018e905875fdf38b267e2651aa9fb4958b549834381c9b822bd18aac9742",
       "category": "social",
       "tags": [
         "douyin",
@@ -297,15 +300,12 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-03-07T10:45:50.158Z",
       "i18n": {
         "zh-CN": {
           "name": "抖音评论自动回复",
           "description": "监控指定抖音视频的新评论，以创作者身份自动发送友好、有针对性的回复，并避免重复。"
         }
-      },
-      "meta": {
-        "rank": 7
       }
     },
     {
@@ -334,7 +334,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T11:35:21.107Z",
       "i18n": {
         "zh-CN": {
           "name": "电商价格库存监控官",
@@ -368,7 +368,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T11:49:02.607Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub Issue 分诊官",
@@ -385,8 +385,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/github-pr-reviewer",
-      "size_bytes": 6178,
-      "checksum": "sha256:6353f9f1706569f6902c85160d9d1a51500b70661101d717e0c5510ed0a8d177",
+      "size_bytes": 6158,
+      "checksum": "sha256:16daef18772b9bf29aa3c4301dc16b4a7d43167297ad24c84a22516ceb4c510d",
       "category": "dev-tools",
       "tags": [
         "github",
@@ -401,15 +401,12 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-03-07T10:45:50.155Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub PR 审查员",
           "description": "自动审查仓库中的开放 Pull Request，对符合条件的自动合并，其余标记为待人工决策。"
         }
-      },
-      "meta": {
-        "rank": 4
       }
     },
     {
@@ -421,8 +418,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/hn-daily",
-      "size_bytes": 4548,
-      "checksum": "sha256:73e4cd05cc9e99e539dd428f43dbd1b61a4ad666efd2d0f02d9f64df9cb8b151",
+      "size_bytes": 4568,
+      "checksum": "sha256:1fd7c17cdb6fc5336cd5e5fb4ae2b99f8f1e8810a37b0ce59d77fba79cbdd8fd",
       "category": "news",
       "tags": [
         "hn",
@@ -436,12 +433,15 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-03-07T10:45:50.148Z",
       "i18n": {
         "zh-CN": {
           "name": "HN 每日简报",
           "description": "每天早晨汇总 Hacker News 精选讨论，过滤重复内容，生成可读摘要推送给你。"
         }
+      },
+      "meta": {
+        "rank": 4
       }
     },
     {
@@ -468,7 +468,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T09:31:36.371Z",
       "i18n": {
         "zh-CN": {
           "name": "京东价格猎手",
@@ -501,7 +501,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T10:43:05.235Z",
       "i18n": {
         "zh-CN": {
           "name": "快递追踪助手",
@@ -532,7 +532,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-25T03:10:08.514Z",
+      "updated_at": "2026-02-24T11:36:24.724Z",
       "i18n": {
         "zh-CN": {
           "name": "发布风险守门员",
@@ -550,7 +550,7 @@
       "format": "bundle",
       "path": "packages/digital-humans/sentiment-monitor",
       "size_bytes": 7308,
-      "checksum": "sha256:062a838540aae5025c24884a4106ca3b1932aa1ce48474041aa43f004bab041f",
+      "checksum": "sha256:1be15881bb6a753ab2532b9ae63dca46d44939cfe5e54ef813609dd9c9fce8d5",
       "category": "news",
       "tags": [
         "brand",
@@ -566,7 +566,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-03-07T10:45:50.151Z",
       "i18n": {
         "zh-CN": {
           "name": "舆情监测官",
@@ -574,7 +574,7 @@
         }
       },
       "meta": {
-        "rank": 6
+        "rank": 5
       }
     },
     {
@@ -603,7 +603,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T11:33:34.472Z",
       "i18n": {
         "zh-CN": {
           "name": "网站健康巡检官",
@@ -636,7 +636,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T10:41:26.293Z",
       "i18n": {
         "zh-CN": {
           "name": "淘宝天猫价格猎手",
@@ -669,7 +669,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T11:31:47.909Z",
       "i18n": {
         "zh-CN": {
           "name": "招投标机会雷达",
@@ -700,7 +700,7 @@
       "icon": "productivity",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T11:34:26.063Z",
       "i18n": {
         "zh-CN": {
           "name": "客服工单分诊官",
@@ -732,7 +732,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T10:45:20.655Z",
       "i18n": {
         "zh-CN": {
           "name": "12306 余票监控",
@@ -764,7 +764,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T09:31:41.480Z",
       "i18n": {
         "zh-CN": {
           "name": "微信文章监控",
@@ -781,8 +781,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/weibo-hot-tracker",
-      "size_bytes": 5303,
-      "checksum": "sha256:255639e8848a25a0173ce09b47da53dfce9242a4da02d62096ed2111ce4b3450",
+      "size_bytes": 5323,
+      "checksum": "sha256:b9d6e4f8b3373fd844d5706b25970ab16b6881ed794f44263dae88d3db6d6325",
       "category": "social",
       "tags": [
         "weibo",
@@ -796,12 +796,15 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-03-07T10:45:50.145Z",
       "i18n": {
         "zh-CN": {
           "name": "微博热点追踪",
           "description": "追踪微博热搜榜单的排名变化，报告新上榜、显著上升和显著下降的热点话题。"
         }
+      },
+      "meta": {
+        "rank": 3
       }
     },
     {
@@ -829,7 +832,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "updated_at": "2026-02-24T10:43:05.191Z",
       "i18n": {
         "zh-CN": {
           "name": "闲鱼捡漏助手",
@@ -839,22 +842,24 @@
     },
     {
       "slug": "xiaohongshu-ai-engager",
-      "name": "Xiaohongshu AI Engager",
-      "version": "1.0.0",
+      "name": "小红书互动助手",
+      "version": "2.1.0",
       "author": "openkursar",
-      "description": "Discovers high-quality AI-related posts on Xiaohongshu and leaves natural, on-topic comments to foster genuine community engagement.",
+      "description": "自动搜索小红书相关帖子，以真实用户语气发表简短评论，促进社区互动。",
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-ai-engager",
-      "size_bytes": 9043,
-      "checksum": "sha256:5327104c42f32dc70fb9d16242950404a529360d9addc6a27cbdb7653575f911",
+      "size_bytes": 21947,
+      "checksum": "sha256:6ed4dd2b26a55b98f64e5ebb680f7881d4f0243963b4cdbfb49f9c60bcedd1ec",
       "category": "social",
       "tags": [
         "xiaohongshu",
         "social",
         "engagement",
         "AI",
-        "community"
+        "community",
+        "小红书",
+        "互动"
       ],
       "icon": "social",
       "locale": "zh-CN",
@@ -862,25 +867,23 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
-      "i18n": {
-        "zh-CN": {
-          "name": "小红书 AI 互动助手",
-          "description": "自动发现小红书上与 AI 相关的高质量帖子，以真实用户的语气发表简短、有价值的评论，促进社区互动。"
-        }
-      }
+      "requires_skills": [
+        "xhs-search",
+        "xhs-comment"
+      ],
+      "updated_at": "2026-03-07T10:46:38.690Z"
     },
     {
       "slug": "xiaohongshu-keyword-monitor",
       "name": "Xiaohongshu Keyword Monitor",
-      "version": "1.0.0",
+      "version": "4.0.0",
       "author": "openkursar",
       "description": "Passively monitors Xiaohongshu for new posts mentioning your brand, product, or topic — surfaces what people are saying without any interaction.",
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-keyword-monitor",
-      "size_bytes": 6591,
-      "checksum": "sha256:c90a626f486448dc27ec39785d483f0fb21c2db101c1a76f9317224f174294a4",
+      "size_bytes": 17654,
+      "checksum": "sha256:afb5575c456cab9d4a359295e6d1f913e025ec21f634d368d3fe58a8a2106f4c",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -895,7 +898,10 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.515Z",
+      "requires_skills": [
+        "xhs-search"
+      ],
+      "updated_at": "2026-03-07T10:41:31.194Z",
       "i18n": {
         "zh-CN": {
           "name": "小红书关键词监控",
@@ -915,8 +921,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/zhihu-topic-monitor",
-      "size_bytes": 5439,
-      "checksum": "sha256:48485c85fe118bbf7e48bf761fbe739ef971139c0335ce803ee75448cec30dd0",
+      "size_bytes": 5419,
+      "checksum": "sha256:a9438a517246b0a2ade21e0714176e4e9630c28874eb9f264ad8c20b6ecf9148",
       "category": "content",
       "tags": [
         "zhihu",
@@ -931,15 +937,12 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-25T03:10:08.516Z",
+      "updated_at": "2026-03-07T10:45:50.153Z",
       "i18n": {
         "zh-CN": {
           "name": "知乎话题监控",
           "description": "定期扫描指定知乎话题下的新提问和高赞回答，按质量筛选后推送精选内容摘要，帮你持续关注感兴趣的领域动态。"
         }
-      },
-      "meta": {
-        "rank": 3
       }
     }
   ]
