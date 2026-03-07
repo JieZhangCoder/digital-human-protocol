@@ -172,6 +172,9 @@ requires:
     - id: xhs-search
       reason: Browser script that collects search data from Xiaohongshu via XHR interception
       bundled: true
+      files:
+        - SKILL.md
+        - index.js
 memory_schema:
   seen_post_ids:
     type: array
@@ -184,9 +187,8 @@ output:
     system: true
   format: markdown
 browser_login:
-  - url: "https://www.xiaohongshu.com"
-    label: "小红书"
-
+  - url: https://www.xiaohongshu.com
+    label: 小红书
 permissions:
   - ai-browser
 escalation:

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-03-07T12:04:51.152Z",
+  "generated_at": "2026-03-07T13:28:17.025Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
@@ -12,8 +12,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/bilibili-comment-replier",
-      "size_bytes": 17728,
-      "checksum": "sha256:d3895f45c4dd4d858d3218552749ff6815c3d054596908ad99d611054fd58c20",
+      "size_bytes": 17798,
+      "checksum": "sha256:b624ed6826a7e2bd8254f1d60b781cb76e2974ea7361d8cef11f853f998982a4",
       "category": "social",
       "tags": [
         "bilibili",
@@ -34,7 +34,7 @@
         "bili-get-messages",
         "bili-reply"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-03-07T13:28:16.977Z",
       "i18n": {
         "en-US": {
           "name": "Bilibili Comment Replier",
@@ -70,7 +70,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-03-07T10:50:02.035Z",
       "i18n": {
         "zh-CN": {
           "name": "Boss直聘职位监控",
@@ -101,7 +101,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:53:22.966Z",
       "i18n": {
         "zh-CN": {
           "name": "Changelog 自动生成器",
@@ -136,7 +136,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:47:34.032Z",
       "i18n": {
         "zh-CN": {
           "name": "CI 构建失败分析师",
@@ -170,7 +170,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T10:43:05.213Z",
       "i18n": {
         "zh-CN": {
           "name": "A股港股日报",
@@ -202,7 +202,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:56:02.063Z",
       "i18n": {
         "zh-CN": {
           "name": "代码复杂度守卫",
@@ -235,7 +235,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T10:45:20.693Z",
       "i18n": {
         "zh-CN": {
           "name": "每日天气穿搭助手",
@@ -267,7 +267,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:51:24.154Z",
       "i18n": {
         "zh-CN": {
           "name": "依赖漏洞侦察兵",
@@ -300,7 +300,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-03-07T10:50:02.035Z",
       "i18n": {
         "zh-CN": {
           "name": "抖音评论自动回复",
@@ -334,7 +334,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:35:21.107Z",
       "i18n": {
         "zh-CN": {
           "name": "电商价格库存监控官",
@@ -368,7 +368,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T11:49:02.607Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub Issue 分诊官",
@@ -401,7 +401,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-03-07T10:50:02.035Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub PR 审查员",
@@ -433,7 +433,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-03-07T12:04:11.977Z",
       "i18n": {
         "zh-CN": {
           "name": "HN 每日简报",
@@ -468,7 +468,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T09:31:36.371Z",
       "i18n": {
         "zh-CN": {
           "name": "京东价格猎手",
@@ -501,7 +501,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.501Z",
+      "updated_at": "2026-02-24T10:43:05.235Z",
       "i18n": {
         "zh-CN": {
           "name": "快递追踪助手",
@@ -532,7 +532,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T11:36:24.724Z",
       "i18n": {
         "zh-CN": {
           "name": "发布风险守门员",
@@ -566,7 +566,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-03-07T11:00:04.461Z",
       "i18n": {
         "zh-CN": {
           "name": "舆情监测官",
@@ -603,7 +603,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T11:33:34.472Z",
       "i18n": {
         "zh-CN": {
           "name": "网站健康巡检官",
@@ -636,7 +636,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T10:41:26.293Z",
       "i18n": {
         "zh-CN": {
           "name": "淘宝天猫价格猎手",
@@ -669,7 +669,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T11:31:47.909Z",
       "i18n": {
         "zh-CN": {
           "name": "招投标机会雷达",
@@ -700,7 +700,7 @@
       "icon": "productivity",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T11:34:26.063Z",
       "i18n": {
         "zh-CN": {
           "name": "客服工单分诊官",
@@ -732,7 +732,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T10:45:20.655Z",
       "i18n": {
         "zh-CN": {
           "name": "12306 余票监控",
@@ -764,7 +764,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T09:31:41.480Z",
       "i18n": {
         "zh-CN": {
           "name": "微信文章监控",
@@ -796,7 +796,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-03-07T12:04:11.978Z",
       "i18n": {
         "zh-CN": {
           "name": "微博热点追踪",
@@ -832,7 +832,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.502Z",
+      "updated_at": "2026-02-24T10:43:05.191Z",
       "i18n": {
         "zh-CN": {
           "name": "闲鱼捡漏助手",
@@ -849,8 +849,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-ai-engager",
-      "size_bytes": 21967,
-      "checksum": "sha256:b5fac1e4c870887baa9cf699bf992f9dfe54c82f2647e98935f59c4fbfaf6976",
+      "size_bytes": 22069,
+      "checksum": "sha256:af5dbf517951bf913d720982c9de76d970a340303604fafc1418c7b1b027da8e",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -871,7 +871,7 @@
         "xhs-search",
         "xhs-comment"
       ],
-      "updated_at": "2026-03-07T12:04:46.504Z",
+      "updated_at": "2026-03-07T13:21:37.401Z",
       "meta": {
         "rank": 4
       }
@@ -885,8 +885,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-keyword-monitor",
-      "size_bytes": 17729,
-      "checksum": "sha256:d188b23a84b8a8618502841a2795a63bd3e8c83fe005273eef4bde0504ef84eb",
+      "size_bytes": 17775,
+      "checksum": "sha256:1577c5ec1f82d7f6502ce4adea2de6530447064f018a9363cc1cf05c3e9c4616",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -904,7 +904,7 @@
       "requires_skills": [
         "xhs-search"
       ],
-      "updated_at": "2026-03-07T12:04:46.505Z",
+      "updated_at": "2026-03-07T13:28:17.024Z",
       "i18n": {
         "zh-CN": {
           "name": "小红书关键词监控",
@@ -940,7 +940,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:46.505Z",
+      "updated_at": "2026-03-07T10:50:02.038Z",
       "i18n": {
         "zh-CN": {
           "name": "知乎话题监控",

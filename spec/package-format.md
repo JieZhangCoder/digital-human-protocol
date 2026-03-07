@@ -10,8 +10,11 @@ packages/digital-humans/<slug>/
   spec.yaml               # required — the agent definition
   README.md               # optional — usage notes for this agent
   assets/                 # optional — icons, images, static resources
-  skills/                 # optional — bundled skill definitions
-    <skill-name>.yaml
+  skills/                 # optional — bundled skill directories
+    <skill-id>/
+      SKILL.md            # skill instruction file
+      index.js            # skill script (optional)
+      lib/                # nested directories supported
   mcps/                   # optional — bundled MCP server definitions
     <mcp-name>/
       spec.yaml
@@ -79,7 +82,18 @@ requires:
 ```
 
 Bundled MCPs must have their own `spec.yaml` under `mcps/<id>/`.
-Bundled skills must have a YAML definition under `skills/<id>.yaml`.
+Bundled skills must be directories under `skills/<id>/` containing the skill files (e.g. `SKILL.md`, `index.js`).
+The `files` field in the `requires.skills` entry must list all files to be downloaded:
+
+```yaml
+requires:
+  skills:
+    - id: my-analysis-skill
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+```
 
 ## Full Field Reference
 

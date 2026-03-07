@@ -129,9 +129,15 @@ requires:
     - id: xhs-search
       reason: 通过 XHR 拦截 + Pinia store 触发搜索，返回结构化帖子数据
       bundled: true
+      files:
+        - SKILL.md
+        - index.js
     - id: xhs-comment
       reason: 通过 execCommand + XHR 拦截可靠地发表评论并确认成功
       bundled: true
+      files:
+        - SKILL.md
+        - index.js
 
 memory_schema:
   commented_posts:

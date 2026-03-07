@@ -3,7 +3,7 @@
 import { createHash } from "crypto";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { basename, join, relative, sep } from "path";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const DEFAULT_SOURCE = "https://openkursar.github.io/digital-human-protocol";
 const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
@@ -118,6 +118,86 @@ function collectBundleFiles(bundleDir) {
   return files.sort();
 }
 
+/**
+ * Recursively list all files under a skill directory, returning POSIX-style
+ * paths relative to that directory (e.g. ["SKILL.md", "index.js", "lib/utils.js"]).
+ */
+function collectSkillFiles(skillDir) {
+  const files = [];
+  const stack = [skillDir];
+
+  while (stack.length > 0) {
+    const dir = stack.pop();
+    if (!dir) continue;
+
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+      } else if (entry.isFile()) {
+        files.push(toPosixPath(relative(skillDir, fullPath)));
+      }
+    }
+  }
+
+  return files.sort();
+}
+
+/**
+ * For every skill declared with `bundled: true` in a spec, scan the corresponding
+ * `skills/{id}/` directory and update the `files` field in-place.
+ *
+ * Writes the updated YAML back to disk only when the file list has changed.
+ * Throws on missing or empty skill directories so CI catches authoring mistakes early.
+ *
+ * @param {object} spec - Parsed spec object (mutated in-place)
+ * @param {string} bundleDir - Absolute path to the bundle directory
+ * @param {string} specPath - Absolute path to spec.yaml (for writing)
+ * @param {string} specRelPath - Repo-relative path (for error messages)
+ * @returns {boolean} true if spec.yaml was rewritten
+ */
+function syncBundledSkillFiles(spec, bundleDir, specPath, specRelPath) {
+  const skills = spec.requires && spec.requires.skills;
+  if (!Array.isArray(skills)) return false;
+
+  let changed = false;
+
+  for (const skill of skills) {
+    if (typeof skill !== "object" || !skill || !skill.bundled) continue;
+
+    const skillId = skill.id;
+    const skillDir = join(bundleDir, "skills", skillId);
+
+    if (!existsSync(skillDir)) {
+      throw new Error(
+        `${specRelPath}: bundled skill "${skillId}" declares bundled: true ` +
+        `but skills/${skillId}/ directory does not exist`
+      );
+    }
+
+    const files = collectSkillFiles(skillDir);
+
+    if (files.length === 0) {
+      throw new Error(
+        `${specRelPath}: bundled skill "${skillId}" — skills/${skillId}/ directory is empty`
+      );
+    }
+
+    // Only mark changed if the list actually differs
+    if (JSON.stringify(skill.files) !== JSON.stringify(files)) {
+      skill.files = files;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    writeFileSync(specPath, stringifyYaml(spec, { lineWidth: 0 }), "utf8");
+  }
+
+  return changed;
+}
+
 function computeBundleStats(bundleDir, repoRoot) {
   const files = collectBundleFiles(bundleDir);
   const hash = createHash("sha256");
@@ -203,6 +283,13 @@ function buildIndex(repoRoot, source) {
     const raw = readFileSync(specPath, "utf8");
     const specRelPath = toPosixPath(relative(repoRoot, specPath));
     const spec = parseSpec(raw, specRelPath);
+
+    // Auto-populate `files` for bundled skills by scanning skills/{id}/ directories.
+    // Rewrites spec.yaml only when the file list has changed. Fails fast on missing dirs.
+    const rewritten = syncBundledSkillFiles(spec, bundleDir, specPath, specRelPath);
+    if (rewritten) {
+      process.stdout.write(`[build-index] updated bundled skill files in ${specRelPath}\n`);
+    }
 
     const bundleRelPath = toPosixPath(relative(repoRoot, bundleDir));
     const slugFromDir = basename(bundleDir);
