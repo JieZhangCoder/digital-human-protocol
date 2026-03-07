@@ -164,7 +164,7 @@ store:
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol
   meta:
-    rank: 5
+    rank: 6
 
 i18n:
   zh-CN:
