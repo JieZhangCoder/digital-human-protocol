@@ -52,7 +52,8 @@ system_prompt: |-
   **3a** browser_navigate({ url: post.link })
   （直接使用 xhs-search 返回的 link，不要自己拼 URL）
 
-  **3b** browser_wait_for({ text: "说点什么", timeout: 10000 })
+  **3b** browser_wait_for({ text: "关注", timeout: 15000 })
+       browser_wait({ timeout: 3000 })
   - 超时 → 跳过此帖，继续下一个
 
   **3c** 根据 post.title 和 persona_description 写一句评论：

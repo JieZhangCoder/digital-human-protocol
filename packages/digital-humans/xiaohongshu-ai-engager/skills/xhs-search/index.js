@@ -18,7 +18,7 @@ async (params) => {
     sort_by = 'general',
     time_range = '不限',
     pages = 1
-  } = params
+  } = params || {}
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
   const log = (...a) => console.log('[xhs]', ...a)
