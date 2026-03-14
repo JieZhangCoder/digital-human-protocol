@@ -1,5 +1,5 @@
 spec_version: "1"
-name: 微信群 AI 数字人
+name: 微信群 AI 数字人(web 版本)
 version: "2.0.0"
 author: openkursar
 description: 部署在微信群里的 AI 数字分身，通过微信网页版 DOM 自动监控群消息并智能回复。使用前提：在 Halo AI 浏览器中打开 wx.qq.com 并保持登录状态，无需任何额外配置或桥接服务。
