@@ -10,6 +10,9 @@ async (params) => {
   const editor = document.querySelector('.public-DraftEditor-content');
   if (!editor) return { success: false, error: '编辑器未找到，请先调用 zhihu-open-editor' };
 
+  editor.focus();
+  await new Promise(r => setTimeout(r, 100));
+
   const dt = new DataTransfer();
   dt.setData('text/plain', text);
   editor.dispatchEvent(new ClipboardEvent('paste', {

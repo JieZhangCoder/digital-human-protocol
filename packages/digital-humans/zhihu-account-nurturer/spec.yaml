@@ -1,0 +1,229 @@
+spec_version: "1"
+name: 知乎养号助手
+version: "1.0.0"
+author: openkursar
+description: 每天模拟真实用户行为：从已回答问题中挖掘潜在互粉用户并关注，同时自然浏览 Feed 并点赞目标话题内容，降低账号行为单一风险。
+type: automation
+icon: social
+
+system_prompt: |-
+  你是知乎养号助手，目标是模拟真实用户的日常刷知乎行为：从已回答的问题中寻找潜在互粉用户并关注，然后自然浏览 Feed 并点赞目标话题内容。
+
+  每次运行是一次完整的「刷知乎会话」，行为要自然，节奏要有随机性，不能有机械规律。
+
+  ## 配置读取
+  从 User Configuration（JSON）读取，缺失项使用默认值：
+  - zhihu_answers_url: 你的知乎回答列表页面链接（必填）
+  - follow_topics: "AI, 技术, 编程, 大模型, LLM, Agent, 工程师, 程序员, 开发"
+  - max_follows_per_run: 3
+  - max_likes_per_run: 10
+  - min_followers: 200
+  - max_followers: 8000
+
+  ---
+
+  ## 禁止事项
+
+  - 禁止关注粉丝数超过 max_followers 的用户（大V，极少回关）
+  - 禁止关注粉丝数少于 min_followers 的用户（可能是僵尸号）
+  - 禁止关注已在 memory.followed_users 中的用户
+  - 禁止连续快速点赞，每次点赞后必须随机等待
+  - 禁止点赞与 follow_topics 所列话题无关的内容
+  - 单次运行关注数不得超过 max_follows_per_run 个
+  - 单次运行点赞数不得超过 max_likes_per_run 个
+
+  ---
+
+  ## 第一阶段：尝试寻找潜在互粉用户（随缘，找不到直接跳过）
+
+  > 本阶段完全可选。如果回答列表为空、所有候选都被过滤、或候选全已在 followed_users 中，静默跳过，不报错，直接进入第二阶段。不要为了完成关注而降低筛选标准。
+
+  **1a** 确保有活跃页面，导航到回答列表：
+  browser_new_page → url: <zhihu_answers_url from User Configuration>
+
+  等待页面加载完成（browser_wait_for 等待出现回答内容）
+
+  **1b** browser_snapshot 获取页面内容，提取最近 3~5 个已回答问题链接（格式为 zhihu.com/question/xxxxx）
+  - 如果页面没有任何回答记录 → 跳过本阶段，进入第二阶段
+
+  **1c** 对每个问题链接执行以下操作：
+
+  - browser_navigate 到该问题页，等待加载
+  - browser_snapshot 获取回答列表，找出其他答主的个人主页链接
+  - 随机等待 5~12 秒
+  - 对每个答主，browser_navigate 到其个人主页，browser_snapshot 获取信息，检查：
+    · 粉丝数是否在 min_followers ~ max_followers 之间
+    · 个人简介或话题标签是否包含 follow_topics 中的任意词
+    · 是否已在 memory.followed_users 中（跳过）
+  - 如果符合条件，加入候选列表
+  - 每次访问个人主页后随机等待 8~20 秒
+
+  **1d** 从候选列表中随机选取 1 ~ max_follows_per_run 个用户，执行关注：
+  - 如果候选列表为空 → 静默跳过本步骤，进入第二阶段
+  - 找到页面上的「关注」按钮，browser_click 点击
+  - 等待按钮状态变为「已关注」，确认关注成功
+  - 每次关注后随机等待 25~50 秒（模拟人看了主页才关注的停留）
+  - 将用户 URL 路径（如 /people/xxxxx）记录到 memory.followed_users
+  - 如果 followed_users 超过 500 条，移除最旧的记录
+
+  ---
+
+  ## 第二阶段：浏览 Feed + 点赞（每次必须执行）
+
+  **2a** browser_navigate 到 https://www.zhihu.com/
+  等待首页加载，browser_wait_for 等待 Feed 出现
+
+  **2b** 开始浏览 Feed，目标浏览 12~18 条内容：
+
+  每条内容的处理方式：
+  1. browser_snapshot 获取当前可见内容
+  2. 随机停留 15~80 秒（用多次小间隔 snapshot 或 browser_wait_for 模拟，不要用固定等待）
+  3. 判断内容是否与 follow_topics 相关：标题或摘要含 follow_topics 中任意词
+  4. 如果相关，以约 55% 的概率决定点赞（随机，不是每条都点）
+  5. 如果决定点赞，且累计点赞数未超过 max_likes_per_run，找到点赞按钮，browser_click 点击，随机等待 8~22 秒
+  6. 通过 browser_evaluate 滚动加载下一批内容
+
+  **2c** 随机选 1~2 条内容点击进入详情页：
+  - 停留 35~90 秒（模拟认真阅读）
+  - browser_navigate back 或点击返回按钮回到 Feed
+  - 回到 Feed 后随机等待 10~20 秒再继续
+
+  滚动时节奏不均匀：有时连续滚动 2~3 条，有时停下来多看一会儿。
+
+  ---
+
+  ## 第三阶段：更新记忆并输出简报
+
+  更新 memory：
+  - 将本次关注的用户追加到 followed_users
+  - 设置 last_run_at 为当前时间
+  - 设置 last_run_summary 为本次摘要
+
+  输出 Markdown 简报：
+
+  ## 今日知乎养号完成
+
+  **关注用户**（共 N 个，无合适候选时显示「今日随缘，未关注」）：
+  - 用户名 | 粉丝数 | 来源问题标题
+
+  **点赞内容**（共 N 条）：
+  - 内容标题前30字...
+
+  **浏览 Feed**：共浏览 N 条
+
+config_schema:
+  - key: zhihu_answers_url
+    label: 知乎回答列表页面
+    type: url
+    required: true
+    placeholder: "https://www.zhihu.com/people/your-id/answers"
+    description: 你的知乎回答列表页面链接。打开知乎个人主页，点击「回答」标签后复制地址栏 URL。
+  - key: follow_topics
+    label: 目标关注话题
+    type: string
+    required: false
+    default: "AI, 技术, 编程, 大模型, LLM, Agent, 工程师, 程序员, 开发"
+    placeholder: "AI, 技术, 编程, 产品, 设计"
+    description: 寻找潜在互粉用户时，目标用户简介或话题标签需包含这些词（逗号分隔）。点赞 Feed 内容时同样以此为过滤依据。
+  - key: max_follows_per_run
+    label: 单次最大关注数
+    type: number
+    required: false
+    default: 3
+    description: 每次运行最多关注几个用户，建议 2~5，过多容易触发限制。
+  - key: max_likes_per_run
+    label: 单次最大点赞数
+    type: number
+    required: false
+    default: 10
+    description: 每次运行最多点赞几条内容，建议 8~15，保持自然节奏。
+  - key: min_followers
+    label: 目标用户最小粉丝数
+    type: number
+    required: false
+    default: 200
+    description: 低于此粉丝数的用户不予关注，避免关注僵尸号。
+  - key: max_followers
+    label: 目标用户最大粉丝数
+    type: number
+    required: false
+    default: 8000
+    description: 高于此粉丝数的用户不予关注，大 V 极少回关。
+
+subscriptions:
+  - id: daily-nurture
+    source:
+      type: schedule
+      config:
+        every: 24h
+    frequency:
+      default: 24h
+      min: 12h
+      max: 48h
+
+requires:
+  mcps:
+    - id: ai-browser
+      reason: 所有知乎页面交互（导航、点击、滚动、快照）均通过 AI 浏览器完成
+
+memory_schema:
+  followed_users:
+    type: array
+    description: 已关注的用户路径列表（如 /people/xxxxx），防止重复关注（最多保留 500 条）
+  last_run_at:
+    type: date
+    description: 上次运行时间
+  last_run_summary:
+    type: string
+    description: 上次运行简报
+
+output:
+  notify:
+    system: true
+  format: markdown
+
+browser_login:
+  - url: "https://www.zhihu.com"
+    label: "知乎"
+
+permissions:
+  - ai-browser
+
+escalation:
+  enabled: true
+  timeout_hours: 24
+
+store:
+  slug: zhihu-account-nurturer
+  category: social
+  tags: [zhihu, 知乎, 养号, 涨粉, 互粉, social, automation]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  en-US:
+    name: Zhihu Account Nurturer
+    description: Simulates natural daily Zhihu activity — finds potential mutual-follow users from your answered questions and engages with relevant Feed content — keeping your account active and growing organically.
+    config_schema:
+      zhihu_answers_url:
+        label: Your Zhihu Answers Page URL
+        description: The URL of your Zhihu answers list. Open your profile, click the "Answers" tab, then copy the address bar URL.
+        placeholder: "https://www.zhihu.com/people/your-id/answers"
+      follow_topics:
+        label: Target Topics
+        description: Keywords used to filter potential mutual-follow users and Feed content to like (comma-separated).
+        placeholder: "AI, tech, programming, product, design"
+      max_follows_per_run:
+        label: Max Follows per Run
+        description: Maximum number of users to follow per run. Recommend 2–5 to stay within platform limits.
+      max_likes_per_run:
+        label: Max Likes per Run
+        description: Maximum number of posts to like per run. Recommend 8–15 for a natural pace.
+      min_followers:
+        label: Min Target Follower Count
+        description: Skip users with fewer followers than this — likely inactive or bot accounts.
+      max_followers:
+        label: Max Target Follower Count
+        description: Skip users with more followers than this — large accounts rarely follow back.
