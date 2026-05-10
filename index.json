@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-04T09:05:32.486Z",
+  "generated_at": "2026-05-10T14:21:37.196Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
@@ -28,7 +28,7 @@
       "icon": "news",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "en-US": {
           "name": "AI Daily News Digest",
@@ -67,7 +67,7 @@
         "bili-get-messages",
         "bili-reply"
       ],
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "en-US": {
           "name": "Bilibili Comment Replier",
@@ -103,7 +103,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "Boss直聘职位监控",
@@ -134,7 +134,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "Changelog 自动生成器",
@@ -169,7 +169,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "CI 构建失败分析师",
@@ -203,7 +203,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.439Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "A股港股日报",
@@ -235,7 +235,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "代码复杂度守卫",
@@ -268,7 +268,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "每日天气穿搭助手",
@@ -300,7 +300,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "依赖漏洞侦察兵",
@@ -333,7 +333,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "抖音评论自动回复",
@@ -367,7 +367,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "电商价格库存监控官",
@@ -401,7 +401,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub Issue 分诊官",
@@ -434,7 +434,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub PR 审查员",
@@ -466,7 +466,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "HN 每日简报",
@@ -501,7 +501,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.440Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "京东价格猎手",
@@ -534,7 +534,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.461Z",
       "i18n": {
         "zh-CN": {
           "name": "快递追踪助手",
@@ -565,7 +565,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "发布风险守门员",
@@ -599,7 +599,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "舆情监测官",
@@ -636,7 +636,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "网站健康巡检官",
@@ -669,7 +669,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "淘宝天猫价格猎手",
@@ -702,7 +702,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "招投标机会雷达",
@@ -733,7 +733,7 @@
       "icon": "productivity",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "客服工单分诊官",
@@ -765,7 +765,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "12306 余票监控",
@@ -797,7 +797,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "微信文章监控",
@@ -827,7 +827,7 @@
       "icon": "social",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.442Z"
+      "updated_at": "2026-05-10T14:21:36.462Z"
     },
     {
       "slug": "wechat-group-assistant-http",
@@ -851,7 +851,7 @@
       "icon": "social",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:05:29.441Z",
+      "updated_at": "2026-05-10T14:21:36.462Z",
       "i18n": {
         "zh-CN": {
           "name": "微信群 AI 数字人",
@@ -883,7 +883,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.442Z",
+      "updated_at": "2026-05-10T14:21:36.463Z",
       "i18n": {
         "zh-CN": {
           "name": "微博热点追踪",
@@ -892,6 +892,45 @@
       },
       "meta": {
         "rank": 3
+      }
+    },
+    {
+      "slug": "x-publisher",
+      "name": "X 内容助手",
+      "version": "1.0.0",
+      "author": "openkursar",
+      "description": "自然语言驱动的 X（推特）内容助手——按用户指令发推、回推、查推、查人、搜话题。",
+      "type": "automation",
+      "format": "bundle",
+      "path": "packages/digital-humans/x-publisher",
+      "size_bytes": 51508,
+      "checksum": "sha256:4db74f661cfec9ebbace15242198a00b4d85e3fefa3b1f4e9302fcc681ab9055",
+      "category": "social",
+      "tags": [
+        "x",
+        "twitter",
+        "social",
+        "content",
+        "posting",
+        "推特",
+        "发推"
+      ],
+      "icon": "social",
+      "locale": "zh-CN",
+      "min_app_version": "0.5.0",
+      "requires_mcps": [
+        "ai-browser"
+      ],
+      "requires_skills": [
+        "x-post",
+        "x-reply",
+        "x-read-tweet",
+        "x-search",
+        "x-read-profile"
+      ],
+      "updated_at": "2026-05-10T14:21:36.464Z",
+      "meta": {
+        "rank": 5
       }
     },
     {
@@ -919,7 +958,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.442Z",
+      "updated_at": "2026-05-10T14:21:36.464Z",
       "i18n": {
         "zh-CN": {
           "name": "闲鱼捡漏助手",
@@ -958,7 +997,7 @@
         "xhs-search",
         "xhs-comment"
       ],
-      "updated_at": "2026-04-04T09:05:29.442Z",
+      "updated_at": "2026-05-10T14:21:36.465Z",
       "meta": {
         "rank": 4
       }
@@ -991,7 +1030,7 @@
       "requires_skills": [
         "xhs-search"
       ],
-      "updated_at": "2026-04-04T09:05:29.443Z",
+      "updated_at": "2026-05-10T14:21:36.465Z",
       "i18n": {
         "zh-CN": {
           "name": "小红书关键词监控",
@@ -1029,7 +1068,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.443Z",
+      "updated_at": "2026-05-10T14:21:36.465Z",
       "i18n": {
         "en-US": {
           "name": "Zhihu Account Nurturer",
@@ -1070,7 +1109,7 @@
         "zhihu-metrics-overview",
         "zhihu-metrics-answers"
       ],
-      "updated_at": "2026-04-04T09:05:29.443Z"
+      "updated_at": "2026-05-10T14:21:36.465Z"
     },
     {
       "slug": "zhihu-topic-monitor",
@@ -1097,7 +1136,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T09:05:29.443Z",
+      "updated_at": "2026-05-10T14:21:36.465Z",
       "i18n": {
         "zh-CN": {
           "name": "知乎话题监控",
