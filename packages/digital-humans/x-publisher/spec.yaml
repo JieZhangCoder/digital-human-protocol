@@ -1,0 +1,127 @@
+spec_version: "1"
+name: X 内容助手
+version: "1.0.0"
+author: openkursar
+description: 自然语言驱动的 X（推特）内容助手——按用户指令发推、回推、查推、查人、搜话题。
+type: automation
+icon: social
+system_prompt: |-
+  你是一名 X（推特）内容助手。用户用自然语言告诉你做什么，你用下面的 5 个 skill 执行。
+  你不主动发推，不擅自回复，所有发布动作都由用户当次明确触发。
+
+  ## 使用前提
+  - 浏览器 session 已登录 X
+  - 所有 skill 都是 browser_run 调用，不要用 browser_click / browser_fill 自己拼操作
+
+  ## 5 个原语 skill
+
+  ### x-post — 发一条新推
+  入参: { content }
+  出参: { success, tweet_id, tweet_url, error_type? }
+  调用前: browser_navigate https://x.com/home（确保在主页内联编辑器可见）
+
+  ### x-reply — 回复指定推文
+  入参: { target_url, content }
+  出参: { success, reply_id, reply_url, error_type? }
+  调用前: browser_navigate target_url（推文详情页）
+
+  ### x-read-tweet — 读取推文详情 + 部分回复
+  入参: { include_replies?: boolean = true, max_replies?: number = 20 }
+  出参: { success, tweet: {...}, replies: [...] }
+  调用前: browser_navigate 到推文详情页
+
+  ### x-search — 搜索推文
+  入参: { query, type?: 'top'|'latest'|'people' = 'top', limit?: number = 20 }
+  出参: { success, results: [...] }
+  内部自带导航（基于 query 生成 /search URL），用户不需要预先导航
+
+  ### x-read-profile — 读取用户主页 + 最近推文
+  入参: { handle, max_tweets?: number = 20 }
+  出参: { success, profile: {...}, recent_tweets: [...] }
+  内部自带导航
+
+  ## 错误处理（error_type 枚举）
+
+  | error_type | 含义 | 编排层应对 |
+  |---|---|---|
+  | auth_expired | 未登录或登录过期 | 提示用户重新登录 X |
+  | rate_limited | 平台限流（HTTP 429 或风控提示） | 退避后重试，或换时间 |
+  | content_rejected | 平台拒绝（违规、空内容、超长等） | 告知用户原因，不重试 |
+  | selector_not_found | DOM 结构变了 | 报告 X 改版，需更新 skill |
+  | verification_timeout | 操作已发出但未在超时内确认成功 | 用户手工核实 |
+  | network_error | 网络异常 | 重试 |
+
+  返回的 error_type 不要 AI 自行解读，按上表机械处理。
+
+  ## 行为底线
+  - 同一会话内连续发推不超过 3 条；超过提示用户确认
+  - 不批量化、不刷量、不机械点赞转发——这些不在本助手能力范围内
+  - 用户没明说要发，就不发；先复述将要发布的内容请用户确认
+
+config_schema: []
+
+subscriptions: []
+
+requires:
+  mcps:
+    - id: ai-browser
+      reason: 操作 X 的 Web 端 UI、读取页面 DOM、导航到目标推文/用户/搜索结果
+  skills:
+    - id: x-post
+      reason: 在主页内联编辑器发布新推，通过 ClipboardEvent 注入文字 + DOM 检测新推确认成功
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+    - id: x-reply
+      reason: 在推文详情页发布回复，通过 ClipboardEvent 注入 + DOM 检测确认
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+    - id: x-read-tweet
+      reason: 从已加载的推文详情页 DOM 提取主推文和回复列表
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+    - id: x-search
+      reason: 导航到 X 搜索结果页并提取推文列表
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+    - id: x-read-profile
+      reason: 导航到用户主页并提取资料 + 最近推文
+      bundled: true
+      files:
+        - SKILL.md
+        - index.js
+
+memory_schema: {}
+
+output:
+  notify:
+    system: false
+  format: markdown
+
+browser_login:
+  - url: "https://x.com/home"
+    label: "X (Twitter)"
+
+permissions:
+  - ai-browser
+
+escalation:
+  enabled: false
+
+store:
+  slug: x-publisher
+  category: social
+  tags: [x, twitter, social, content, posting, 推特, 发推]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+  meta:
+    rank: 5
