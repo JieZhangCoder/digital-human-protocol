@@ -224,6 +224,18 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 		copyIfPresent(entry, spec, "i18n")
 		copyIfPresent(entry, spec, "created_at")
 		copyIfPresent(entry, spec, "updated_at")
+
+		// Extract requires_skills and requires_mcps from spec.requires
+		// so the client knows which external dependencies to install.
+		requiresSkills := extractSkillDeps(spec)
+		if len(requiresSkills) > 0 {
+			entry["requires_skills"] = requiresSkills
+		}
+		requiresMcps := extractMcpDeps(spec)
+		if len(requiresMcps) > 0 {
+			entry["requires_mcps"] = requiresMcps
+		}
+
 		apps = append(apps, entry)
 	}
 
@@ -275,6 +287,57 @@ func copyIfPresent(entry, spec map[string]interface{}, key string) {
 	if v, ok := spec[key]; ok && v != nil {
 		entry[key] = v
 	}
+}
+
+// extractSkillDeps extracts all skill IDs from spec.requires.skills.
+// Both string shorthand ("summarizer") and object form ({id: "...", bundled: true})
+// are collected; bundled skills are included so the client can show full deps.
+func extractSkillDeps(spec map[string]interface{}) []string {
+	requires, ok := spec["requires"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	skills, ok := requires["skills"].([]interface{})
+	if !ok {
+		return nil
+	}
+	var ids []string
+	for _, s := range skills {
+		switch v := s.(type) {
+		case string:
+			ids = append(ids, v)
+		case map[string]interface{}:
+			if id, ok := v["id"].(string); ok {
+				ids = append(ids, id)
+			}
+		}
+	}
+	return ids
+}
+
+// extractMcpDeps extracts all MCP IDs from spec.requires.mcps.
+// Same pattern as extractSkillDeps.
+func extractMcpDeps(spec map[string]interface{}) []string {
+	requires, ok := spec["requires"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	mcps, ok := requires["mcps"].([]interface{})
+	if !ok {
+		return nil
+	}
+	var ids []string
+	for _, s := range mcps {
+		switch v := s.(type) {
+		case string:
+			ids = append(ids, v)
+		case map[string]interface{}:
+			if id, ok := v["id"].(string); ok {
+				ids = append(ids, id)
+			}
+		}
+	}
+	return ids
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
