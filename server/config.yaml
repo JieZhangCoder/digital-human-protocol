@@ -1,0 +1,26 @@
+storage:
+  type: local
+  config:
+    path: "./halo-data"
+ai_judge:
+  endpoint: ""
+  model: ""
+  api_key: ""
+rules:
+  enabled:
+    - schema_valid
+    - slug_unique
+    - dangerous_permissions
+    - skill_code_safety
+    - prompt_quality
+    - metadata_compliance
+    - duplicate_detection
+    - sensitive_categories
+auth:
+  type: token
+  # Empty token disables auth (convenient for local dev).
+  # Production deployments MUST replace REPLACE_ME with a real secret —
+  # leaving the default value is equivalent to using a publicly known token.
+  token: "REPLACE_ME"
+auto_merge_threshold: "low_risk"
+listen: ":8080"
