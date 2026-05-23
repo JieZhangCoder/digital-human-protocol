@@ -1,0 +1,10 @@
+spec_version: "1"
+name: meituan-list-shops
+version: 1.0.0
+author: openkursar
+description: Extracted from friday-milktea-secretary
+type: skill
+store:
+  slug: openkursar/meituan-list-shops
+  category: other
+  license: MIT

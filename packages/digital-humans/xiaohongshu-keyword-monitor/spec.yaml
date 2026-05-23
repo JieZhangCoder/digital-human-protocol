@@ -169,12 +169,8 @@ requires:
     - id: ai-browser
       reason: Required for browser_navigate and browser_run to execute the xhs-search skill
   skills:
-    - id: xhs-search
+    - id: openkursar/xhs-search
       reason: Browser script that collects search data from Xiaohongshu via XHR interception
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
 memory_schema:
   seen_post_ids:
     type: array

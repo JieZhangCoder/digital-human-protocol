@@ -1,0 +1,10 @@
+spec_version: "1"
+name: bili-reply
+version: 1.0.0
+author: openkursar
+description: Extracted from bilibili-comment-replier
+type: skill
+store:
+  slug: openkursar/bili-reply
+  category: other
+  license: MIT

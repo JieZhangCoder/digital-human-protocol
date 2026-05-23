@@ -1,6 +1,6 @@
 spec_version: "1"
 name: 小红书互动助手
-version: "2.1.0"
+version: 2.1.0
 author: openkursar
 description: 自动搜索小红书相关帖子，以真实用户语气发表简短评论，促进社区互动。
 type: automation
@@ -75,21 +75,20 @@ system_prompt: |-
   - 搜索帖子总数 / 符合条件数 / 成功评论数 / 失败数
   - 每条成功评论：帖子标题（附 link）+ 评论内容
   - 跳过原因汇总
-
 config_schema:
   - key: keywords
     label: 搜索关键词
     type: string
     required: true
-    default: "AI"
-    placeholder: "AI, 大模型, Agent"
+    default: AI
+    placeholder: AI, 大模型, Agent
     description: 在小红书搜索的关键词，多个词用逗号分隔；第一个词用于搜索 URL，所有词用于相关性参考
   - key: persona_description
     label: 人设描述
     type: text
     required: false
     default: ""
-    placeholder: "我是一名每天使用 AI 工具的软件开发者，喜欢分享实用经验。"
+    placeholder: 我是一名每天使用 AI 工具的软件开发者，喜欢分享实用经验。
     description: 评论者的背景身份，引导评论语气和视角；留空则使用默认人设（AI 开发者 / 技术爱好者）
   - key: min_likes
     label: 最低点赞数
@@ -107,10 +106,9 @@ config_schema:
     label: 排除关键词
     type: string
     required: false
-    default: "广告, 合作, 赞助"
-    placeholder: "广告, 合作"
+    default: 广告, 合作, 赞助
+    placeholder: 广告, 合作
     description: 逗号分隔，标题包含这些词的帖子将被跳过
-
 subscriptions:
   - id: engagement-run
     source:
@@ -121,25 +119,15 @@ subscriptions:
       default: 4h
       min: 2h
       max: 24h
-
 requires:
   mcps:
     - id: ai-browser
       reason: 浏览小红书搜索结果、打开帖子详情页、执行 skill 脚本
   skills:
-    - id: xhs-search
+    - id: openkursar/xhs-search
       reason: 通过 XHR 拦截 + Pinia store 触发搜索，返回结构化帖子数据
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: xhs-comment
+    - id: openkursar/xhs-comment
       reason: 通过 execCommand + XHR 拦截可靠地发表评论并确认成功
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-
 memory_schema:
   commented_posts:
     type: array
@@ -147,29 +135,31 @@ memory_schema:
   last_run_at:
     type: date
     description: 最近一次成功运行的时间戳
-
 output:
   notify:
     system: true
   format: markdown
-
 browser_login:
-  - url: "https://www.xiaohongshu.com"
-    label: "小红书"
-
+  - url: https://www.xiaohongshu.com
+    label: 小红书
 permissions:
   - ai-browser
-
 escalation:
   enabled: true
   timeout_hours: 24
-
 store:
   slug: xiaohongshu-ai-engager
   category: social
-  tags: [xiaohongshu, social, engagement, AI, community, 小红书, 互动]
+  tags:
+    - xiaohongshu
+    - social
+    - engagement
+    - AI
+    - community
+    - 小红书
+    - 互动
   locale: zh-CN
-  min_app_version: "0.5.0"
+  min_app_version: 0.5.0
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol
   meta:

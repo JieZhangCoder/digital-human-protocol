@@ -1,0 +1,10 @@
+spec_version: "1"
+name: bili-get-messages
+version: 1.0.0
+author: openkursar
+description: Extracted from bilibili-comment-replier
+type: skill
+store:
+  slug: openkursar/bili-get-messages
+  category: other
+  license: MIT

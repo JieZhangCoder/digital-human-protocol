@@ -1,0 +1,10 @@
+spec_version: "1"
+name: zhihu-fill-editor
+version: 1.0.0
+author: openkursar
+description: Extracted from zhihu-ai-answerer
+type: skill
+store:
+  slug: openkursar/zhihu-fill-editor
+  category: other
+  license: MIT

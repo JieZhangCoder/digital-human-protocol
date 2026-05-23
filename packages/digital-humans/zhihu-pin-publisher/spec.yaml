@@ -96,7 +96,7 @@ config_schema:
     label: 素材内容/路径
     type: text
     required: false
-    placeholder: "https://example.com/feed.xml 或 /path/to/notes.md 或一段灵感原文"
+    placeholder: https://example.com/feed.xml 或 /path/to/notes.md 或一段灵感原文
     description: 根据 source_type 填对应内容；manual 模式可留空
   - key: tone
     label: 语气描述
@@ -108,7 +108,7 @@ config_schema:
     label: 主题提示
     type: string
     required: false
-    placeholder: "AI / 大模型 / Agent 工具链"
+    placeholder: AI / 大模型 / Agent 工具链
     description: 提示 AI 从素材里挑哪个角度切入；留空让 AI 自己选
   - key: max_pins_per_run
     label: 单次最大发布数
@@ -131,12 +131,8 @@ requires:
     - id: ai-browser
       reason: 打开知乎主页并通过 zhihu-publish-pin skill 发布想法
   skills:
-    - id: zhihu-publish-pin
+    - id: openkursar/zhihu-publish-pin
       reason: 通过 ClipboardEvent 注入 Draft.js 编辑器并发布想法，XHR + DOM 双路确认成功
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
 memory_schema:
   published_pins:
     type: array

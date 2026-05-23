@@ -1,0 +1,10 @@
+spec_version: "1"
+name: meituan-get-cart
+version: 1.0.0
+author: openkursar
+description: Extracted from friday-milktea-secretary
+type: skill
+store:
+  slug: openkursar/meituan-get-cart
+  category: other
+  license: MIT

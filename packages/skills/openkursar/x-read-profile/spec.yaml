@@ -1,0 +1,10 @@
+spec_version: "1"
+name: x-read-profile
+version: 1.0.0
+author: openkursar
+description: Extracted from x-publisher
+type: skill
+store:
+  slug: openkursar/x-read-profile
+  category: other
+  license: MIT

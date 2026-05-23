@@ -329,14 +329,14 @@ subscriptions:
     source:
       type: schedule
       config:
-        cron: "0 */10 12-14 * * 5"
+        cron: 0 */10 12-14 * * 5
     frequency:
       default: 10m
   - id: settle-tick
     source:
       type: schedule
       config:
-        cron: "0 55 14 * * 5"
+        cron: 0 55 14 * * 5
     frequency:
       default: weekly
 requires:
@@ -344,60 +344,24 @@ requires:
     - id: ai-browser
       reason: 通过 H5 模式打开美团外卖页面、调度 meituan-* skill 完成选店/加菜/结算/下单
   skills:
-    - id: meituan-list-shops
+    - id: openkursar/meituan-list-shops
       reason: 从美团首页 DOM 解析候选店铺（评分、月售、距离、券标签）
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-shop-menu
+    - id: openkursar/meituan-shop-menu
       reason: 解析店铺菜单页 DOM，输出分类 + 商品 + 价格 + 规格标记
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-login-check
+    - id: openkursar/meituan-login-check
       reason: 检查美团登录态，过期时通知秘书扫码
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-get-cart
+    - id: openkursar/meituan-get-cart
       reason: 读取 localStorage 购物车，检查是否有遗留 + 下单前校验
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-modify-cart
+    - id: openkursar/meituan-modify-cart
       reason: 逐杯加菜（覆盖单规格 / 多规格弹窗 / 加减场景），返回 calculateprice 响应
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-get-addresses
+    - id: openkursar/meituan-get-addresses
       reason: 从 localStorage 读取地址簿，配置 meituan_address_id 时用于查 ID
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-checkout-preview
+    - id: openkursar/meituan-checkout-preview
       reason: 触发结算预览，拿到完整结算数据（优惠券、地址、总价细分）
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-submit-order
+    - id: openkursar/meituan-submit-order
       reason: 在 preview 页提交订单，生成待支付订单（用户人工支付）
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: meituan-order-status
+    - id: openkursar/meituan-order-status
       reason: 查询订单列表，确认提交后的订单 ID + 状态
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
 memory_schema:
   stage:
     type: string
