@@ -1,0 +1,10 @@
+spec_version: "1"
+name: xhs-comment
+version: 1.0.0
+author: openkursar
+description: Extracted from xiaohongshu-ai-engager
+type: skill
+store:
+  slug: openkursar/xhs-comment
+  category: other
+  license: MIT

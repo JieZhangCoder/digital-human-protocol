@@ -1,0 +1,10 @@
+spec_version: "1"
+name: zhihu-creator-search
+version: 1.0.0
+author: openkursar
+description: Extracted from zhihu-ai-answerer
+type: skill
+store:
+  slug: openkursar/zhihu-creator-search
+  category: other
+  license: MIT

@@ -1,0 +1,10 @@
+spec_version: "1"
+name: zhihu-creator-invited
+version: 1.0.0
+author: openkursar
+description: Extracted from zhihu-ai-answerer
+type: skill
+store:
+  slug: openkursar/zhihu-creator-invited
+  category: other
+  license: MIT

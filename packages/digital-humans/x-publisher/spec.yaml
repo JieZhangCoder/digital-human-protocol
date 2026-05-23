@@ -1,6 +1,6 @@
 spec_version: "1"
 name: X 内容助手
-version: "1.0.0"
+version: 1.0.0
 author: openkursar
 description: 自然语言驱动的 X（推特）内容助手——按用户指令发推、回推、查推、查人、搜话题。
 type: automation
@@ -57,70 +57,48 @@ system_prompt: |-
   - 同一会话内连续发推不超过 3 条；超过提示用户确认
   - 不批量化、不刷量、不机械点赞转发——这些不在本助手能力范围内
   - 用户没明说要发，就不发；先复述将要发布的内容请用户确认
-
 config_schema: []
-
 subscriptions: []
-
 requires:
   mcps:
     - id: ai-browser
       reason: 操作 X 的 Web 端 UI、读取页面 DOM、导航到目标推文/用户/搜索结果
   skills:
-    - id: x-post
+    - id: openkursar/x-post
       reason: 在主页内联编辑器发布新推，通过 ClipboardEvent 注入文字 + DOM 检测新推确认成功
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: x-reply
+    - id: openkursar/x-reply
       reason: 在推文详情页发布回复，通过 ClipboardEvent 注入 + DOM 检测确认
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: x-read-tweet
+    - id: openkursar/x-read-tweet
       reason: 从已加载的推文详情页 DOM 提取主推文和回复列表
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: x-search
+    - id: openkursar/x-search
       reason: 导航到 X 搜索结果页并提取推文列表
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-    - id: x-read-profile
+    - id: openkursar/x-read-profile
       reason: 导航到用户主页并提取资料 + 最近推文
-      bundled: true
-      files:
-        - SKILL.md
-        - index.js
-
 memory_schema: {}
-
 output:
   notify:
     system: false
   format: markdown
-
 browser_login:
-  - url: "https://x.com/home"
-    label: "X (Twitter)"
-
+  - url: https://x.com/home
+    label: X (Twitter)
 permissions:
   - ai-browser
-
 escalation:
   enabled: false
-
 store:
   slug: x-publisher
   category: social
-  tags: [x, twitter, social, content, posting, 推特, 发推]
+  tags:
+    - x
+    - twitter
+    - social
+    - content
+    - posting
+    - 推特
+    - 发推
   locale: zh-CN
-  min_app_version: "0.5.0"
+  min_app_version: 0.5.0
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol
   meta:

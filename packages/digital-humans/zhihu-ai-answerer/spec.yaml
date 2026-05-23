@@ -1,11 +1,10 @@
 spec_version: "1"
 name: 知乎 AI 话题抢答助手
-version: "1.1.0"
+version: 1.1.0
 author: openkursar
 description: 自动从多个来源（搜索、热搜、邀请）发现 AI 热门问题，生成犀利有深度的回答并发布，帮助账号在 AI 领域快速积累影响力。
 type: automation
 icon: social
-
 system_prompt: |-
   你是一名知乎 AI 领域的专业答主，目标是每天发现并抢答最有潜力、可能有热度的 AI 相关问题，生成犀利有深度、高质量的回答并发布，帮助账号在 AI 领域快速积累影响力。
   你的目标是不断提高你文章和内容的阅读量、点赞量，和自己的关注量，这是核心目标，其他都以这个对齐而可调整。
@@ -187,27 +186,26 @@ system_prompt: |-
     正确：params: { text: "内容..." }
     错误：params: "{\"text\": \"内容...\"}"
   返回：{ success: boolean, char_count?: number, error?: string }
-
 config_schema:
   - key: search_keywords
     label: 搜索关键词
     type: string
     required: true
-    default: "AI, 大模型, Agent, Vibe Coding, DeepSeek"
-    placeholder: "AI, 大模型, Agent, Cursor, Claude"
+    default: AI, 大模型, Agent, Vibe Coding, DeepSeek
+    placeholder: AI, 大模型, Agent, Cursor, Claude
     description: 主动搜索的关键词，逗号分隔，最多取前3个用于搜索
   - key: persona
     label: 答主人设
     type: text
     required: false
-    default: "AI 开发者，关注前沿技术，观点直接不废话"
-    placeholder: "独立开发者，每天用 AI 工具，喜欢分享踩坑经验"
+    default: AI 开发者，关注前沿技术，观点直接不废话
+    placeholder: 独立开发者，每天用 AI 工具，喜欢分享踩坑经验
     description: 回答时的身份背景，影响语气和视角
   - key: answer_style
     label: 回答风格
     type: text
     required: false
-    default: "开门见山给结论，有具体数据或案例，适当反常识，结尾引发讨论"
+    default: 开门见山给结论，有具体数据或案例，适当反常识，结尾引发讨论
     description: 回答的写作风格要求
   - key: max_answers_per_run
     label: 单次最大回答数
@@ -227,7 +225,6 @@ config_schema:
     required: false
     default: 1200
     description: 回答最多字数，太长读者容易跳过
-
 subscriptions:
   - id: daily-answer
     source:
@@ -238,50 +235,24 @@ subscriptions:
       default: 24h
       min: 12h
       max: 48h
-
 requires:
   skills:
-    - id: zhihu-creator-invited
+    - id: openkursar/zhihu-creator-invited
       reason: 从创作者中心获取被邀请回答的问题列表
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-creator-search
+    - id: openkursar/zhihu-creator-search
       reason: 从创作者搜索页获取24小时热度问题列表（含浏览/关注/回答增量数据）
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-question-read
+    - id: openkursar/zhihu-question-read
       reason: 读取问题详情和TOP回答
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-open-editor
+    - id: openkursar/zhihu-open-editor
       reason: 在问题页打开回答编辑器
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-fill-editor
+    - id: openkursar/zhihu-fill-editor
       reason: 通过 React Fiber 直接更新 Draft.js editorState，将回答写入编辑器
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-publish-answer
+    - id: openkursar/zhihu-publish-answer
       reason: 点击发布按钮并验证回答已发出
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-metrics-overview
+    - id: openkursar/zhihu-metrics-overview
       reason: 从内容分析页读取近期阅读/赞同/收藏汇总数据，判断整体趋势
-      bundled: true
-      files:
-        - index.js
-    - id: zhihu-metrics-answers
+    - id: openkursar/zhihu-metrics-answers
       reason: 从内容管理-回答页读取近期每篇回答的指标，输出策略信号（keep/adjust/urgent_adjust）
-      bundled: true
-      files:
-        - index.js
-
 memory_schema:
   answered_questions:
     type: array
@@ -292,29 +263,30 @@ memory_schema:
   last_run_summary:
     type: string
     description: 上次运行摘要
-
 output:
   notify:
     system: true
   format: markdown
-
 browser_login:
-  - url: "https://www.zhihu.com"
-    label: "知乎"
-
+  - url: https://www.zhihu.com
+    label: 知乎
 permissions:
   - ai-browser
   - web_search
-
 escalation:
   enabled: true
   timeout_hours: 24
-
 store:
   slug: zhihu-ai-answerer
   category: social
-  tags: [zhihu, AI, 知乎, 答题, 涨粉, 大模型]
+  tags:
+    - zhihu
+    - AI
+    - 知乎
+    - 答题
+    - 涨粉
+    - 大模型
   locale: zh-CN
-  min_app_version: "0.5.0"
+  min_app_version: 0.5.0
   license: MIT
   repository: https://github.com/openkursar/digital-human-protocol

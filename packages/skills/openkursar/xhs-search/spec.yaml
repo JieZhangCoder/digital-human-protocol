@@ -1,0 +1,10 @@
+spec_version: "1"
+name: xhs-search
+version: 1.0.0
+author: openkursar
+description: Extracted from xiaohongshu-ai-engager, xiaohongshu-keyword-monitor
+type: skill
+store:
+  slug: openkursar/xhs-search
+  category: other
+  license: MIT

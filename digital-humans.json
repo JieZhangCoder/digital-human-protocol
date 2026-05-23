@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-05-23T06:49:58.979Z",
+  "generated_at": "2026-05-23T06:54:43.123Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
@@ -45,8 +45,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/bilibili-comment-replier",
-      "size_bytes": 17798,
-      "checksum": "sha256:b624ed6826a7e2bd8254f1d60b781cb76e2974ea7361d8cef11f853f998982a4",
+      "size_bytes": 7877,
+      "checksum": "sha256:30add67e9fc54bb8a983e4f0780ff9e0ed7fba47849760078a519fc56762331e",
       "category": "social",
       "tags": [
         "bilibili",
@@ -64,18 +64,18 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "bili-get-messages",
-        "bili-reply"
+        "openkursar/bili-get-messages",
+        "openkursar/bili-reply"
       ],
       "requires_skills_full": [
         {
-          "id": "bili-get-messages"
+          "id": "openkursar/bili-get-messages"
         },
         {
-          "id": "bili-reply"
+          "id": "openkursar/bili-reply"
         }
       ],
-      "updated_at": "2026-03-07T13:28:16.977Z",
+      "updated_at": "2026-05-23T06:54:32.656Z",
       "i18n": {
         "en-US": {
           "name": "Bilibili Comment Replier",
@@ -392,8 +392,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/friday-milktea-secretary",
-      "size_bytes": 92759,
-      "checksum": "sha256:3c4a7086b5233b9280948beeefc7e80c8b811b4116a964ef4bb33a66eae03fa9",
+      "size_bytes": 20727,
+      "checksum": "sha256:eafb8655b0a7a1bfab38091de9bf25dc2af6f04ed81835dc7f56c3a7c636c0b6",
       "category": "productivity",
       "tags": [
         "meituan",
@@ -414,46 +414,46 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "meituan-list-shops",
-        "meituan-shop-menu",
-        "meituan-login-check",
-        "meituan-get-cart",
-        "meituan-modify-cart",
-        "meituan-get-addresses",
-        "meituan-checkout-preview",
-        "meituan-submit-order",
-        "meituan-order-status"
+        "openkursar/meituan-list-shops",
+        "openkursar/meituan-shop-menu",
+        "openkursar/meituan-login-check",
+        "openkursar/meituan-get-cart",
+        "openkursar/meituan-modify-cart",
+        "openkursar/meituan-get-addresses",
+        "openkursar/meituan-checkout-preview",
+        "openkursar/meituan-submit-order",
+        "openkursar/meituan-order-status"
       ],
       "requires_skills_full": [
         {
-          "id": "meituan-list-shops"
+          "id": "openkursar/meituan-list-shops"
         },
         {
-          "id": "meituan-shop-menu"
+          "id": "openkursar/meituan-shop-menu"
         },
         {
-          "id": "meituan-login-check"
+          "id": "openkursar/meituan-login-check"
         },
         {
-          "id": "meituan-get-cart"
+          "id": "openkursar/meituan-get-cart"
         },
         {
-          "id": "meituan-modify-cart"
+          "id": "openkursar/meituan-modify-cart"
         },
         {
-          "id": "meituan-get-addresses"
+          "id": "openkursar/meituan-get-addresses"
         },
         {
-          "id": "meituan-checkout-preview"
+          "id": "openkursar/meituan-checkout-preview"
         },
         {
-          "id": "meituan-submit-order"
+          "id": "openkursar/meituan-submit-order"
         },
         {
-          "id": "meituan-order-status"
+          "id": "openkursar/meituan-order-status"
         }
       ],
-      "updated_at": "2026-05-23T06:30:40.229Z",
+      "updated_at": "2026-05-23T06:54:32.690Z",
       "i18n": {
         "en-US": {
           "name": "Friday Milk Tea Secretary",
@@ -992,8 +992,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/x-publisher",
-      "size_bytes": 51508,
-      "checksum": "sha256:4db74f661cfec9ebbace15242198a00b4d85e3fefa3b1f4e9302fcc681ab9055",
+      "size_bytes": 3896,
+      "checksum": "sha256:9eb0fd44b6d4872c3d6484558dc22c1119459835adde47f3fd5a076632fcdced",
       "category": "social",
       "tags": [
         "x",
@@ -1011,30 +1011,30 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "x-post",
-        "x-reply",
-        "x-read-tweet",
-        "x-search",
-        "x-read-profile"
+        "openkursar/x-post",
+        "openkursar/x-reply",
+        "openkursar/x-read-tweet",
+        "openkursar/x-search",
+        "openkursar/x-read-profile"
       ],
       "requires_skills_full": [
         {
-          "id": "x-post"
+          "id": "openkursar/x-post"
         },
         {
-          "id": "x-reply"
+          "id": "openkursar/x-reply"
         },
         {
-          "id": "x-read-tweet"
+          "id": "openkursar/x-read-tweet"
         },
         {
-          "id": "x-search"
+          "id": "openkursar/x-search"
         },
         {
-          "id": "x-read-profile"
+          "id": "openkursar/x-read-profile"
         }
       ],
-      "updated_at": "2026-05-10T11:51:43.781Z",
+      "updated_at": "2026-05-23T06:54:32.698Z",
       "meta": {
         "rank": 5
       }
@@ -1081,8 +1081,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-ai-engager",
-      "size_bytes": 22108,
-      "checksum": "sha256:a9823417eacb50749b20039d2e0c89e9258144ffd1f94c2fcaf6726703abcfc1",
+      "size_bytes": 5887,
+      "checksum": "sha256:1af9c8e7ea6b4bbaf9f6ae78b7236bc61147ddf68e55643a394b150cc13e84ea",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -1100,18 +1100,18 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "xhs-search",
-        "xhs-comment"
+        "openkursar/xhs-search",
+        "openkursar/xhs-comment"
       ],
       "requires_skills_full": [
         {
-          "id": "xhs-search"
+          "id": "openkursar/xhs-search"
         },
         {
-          "id": "xhs-comment"
+          "id": "openkursar/xhs-comment"
         }
       ],
-      "updated_at": "2026-03-07T15:05:20.219Z",
+      "updated_at": "2026-05-23T06:54:32.702Z",
       "meta": {
         "rank": 4
       }
@@ -1125,8 +1125,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/xiaohongshu-keyword-monitor",
-      "size_bytes": 17775,
-      "checksum": "sha256:1577c5ec1f82d7f6502ce4adea2de6530447064f018a9363cc1cf05c3e9c4616",
+      "size_bytes": 8800,
+      "checksum": "sha256:c81b04dee5a480524141b63f2ea4a27427a87aeb3f263589daacb59f8c217472",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -1142,14 +1142,14 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "xhs-search"
+        "openkursar/xhs-search"
       ],
       "requires_skills_full": [
         {
-          "id": "xhs-search"
+          "id": "openkursar/xhs-search"
         }
       ],
-      "updated_at": "2026-03-07T13:28:17.024Z",
+      "updated_at": "2026-05-23T06:54:32.704Z",
       "i18n": {
         "zh-CN": {
           "name": "小红书关键词监控",
@@ -1204,8 +1204,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/zhihu-ai-answerer",
-      "size_bytes": 32389,
-      "checksum": "sha256:c7579b8e8ddce85efed583424187fdcc418255d0143d48d3fb76b4b406384a39",
+      "size_bytes": 14123,
+      "checksum": "sha256:71782dce794aefe16ca28804b27d5d4b9f3ab6d83722f85ab2335d91e5c8eec5",
       "category": "social",
       "tags": [
         "zhihu",
@@ -1219,42 +1219,42 @@
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
       "requires_skills": [
-        "zhihu-creator-invited",
-        "zhihu-creator-search",
-        "zhihu-question-read",
-        "zhihu-open-editor",
-        "zhihu-fill-editor",
-        "zhihu-publish-answer",
-        "zhihu-metrics-overview",
-        "zhihu-metrics-answers"
+        "openkursar/zhihu-creator-invited",
+        "openkursar/zhihu-creator-search",
+        "openkursar/zhihu-question-read",
+        "openkursar/zhihu-open-editor",
+        "openkursar/zhihu-fill-editor",
+        "openkursar/zhihu-publish-answer",
+        "openkursar/zhihu-metrics-overview",
+        "openkursar/zhihu-metrics-answers"
       ],
       "requires_skills_full": [
         {
-          "id": "zhihu-creator-invited"
+          "id": "openkursar/zhihu-creator-invited"
         },
         {
-          "id": "zhihu-creator-search"
+          "id": "openkursar/zhihu-creator-search"
         },
         {
-          "id": "zhihu-question-read"
+          "id": "openkursar/zhihu-question-read"
         },
         {
-          "id": "zhihu-open-editor"
+          "id": "openkursar/zhihu-open-editor"
         },
         {
-          "id": "zhihu-fill-editor"
+          "id": "openkursar/zhihu-fill-editor"
         },
         {
-          "id": "zhihu-publish-answer"
+          "id": "openkursar/zhihu-publish-answer"
         },
         {
-          "id": "zhihu-metrics-overview"
+          "id": "openkursar/zhihu-metrics-overview"
         },
         {
-          "id": "zhihu-metrics-answers"
+          "id": "openkursar/zhihu-metrics-answers"
         }
       ],
-      "updated_at": "2026-04-04T08:50:42.562Z"
+      "updated_at": "2026-05-23T06:54:32.724Z"
     },
     {
       "slug": "zhihu-pin-publisher",
@@ -1265,8 +1265,8 @@
       "type": "automation",
       "format": "bundle",
       "path": "packages/digital-humans/zhihu-pin-publisher",
-      "size_bytes": 23591,
-      "checksum": "sha256:1dd152d1e28e7f79de4a52b366d939ee3219b2df5e46f86a728011a98151b350",
+      "size_bytes": 7056,
+      "checksum": "sha256:e06f625685392672f60ffe1fca57f1a8a469365c315bef7f02fb3db8f3ac05c4",
       "category": "content",
       "tags": [
         "zhihu",
@@ -1286,14 +1286,14 @@
         "ai-browser"
       ],
       "requires_skills": [
-        "zhihu-publish-pin"
+        "openkursar/zhihu-publish-pin"
       ],
       "requires_skills_full": [
         {
-          "id": "zhihu-publish-pin"
+          "id": "openkursar/zhihu-publish-pin"
         }
       ],
-      "updated_at": "2026-05-23T06:30:17.275Z",
+      "updated_at": "2026-05-23T06:54:32.722Z",
       "i18n": {
         "en-US": {
           "name": "Zhihu Pin Publisher",

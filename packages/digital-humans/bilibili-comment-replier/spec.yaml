@@ -137,16 +137,10 @@ requires:
     - id: ai-browser
       reason: 打开 B 站消息中心页面、执行 Skill 脚本（获取通知、发送回复）
   skills:
-    - id: bili-get-messages
+    - id: openkursar/bili-get-messages
       reason: 通过直接 fetch 调用 B 站 msgfeed API，返回结构化评论通知列表
-      bundled: true
-      files:
-        - index.js
-    - id: bili-reply
+    - id: openkursar/bili-reply
       reason: 通过直接 POST 到 B 站 reply/add API 发送回复，并验证成功
-      bundled: true
-      files:
-        - index.js
 memory_schema:
   replied_ids:
     type: array

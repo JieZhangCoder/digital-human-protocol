@@ -1,0 +1,10 @@
+spec_version: "1"
+name: x-post
+version: 1.0.0
+author: openkursar
+description: Extracted from x-publisher
+type: skill
+store:
+  slug: openkursar/x-post
+  category: other
+  license: MIT

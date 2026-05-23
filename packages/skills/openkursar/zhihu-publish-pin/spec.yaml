@@ -1,0 +1,10 @@
+spec_version: "1"
+name: zhihu-publish-pin
+version: 1.0.0
+author: openkursar
+description: Extracted from zhihu-pin-publisher
+type: skill
+store:
+  slug: openkursar/zhihu-publish-pin
+  category: other
+  license: MIT
