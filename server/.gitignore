@@ -1,0 +1,17 @@
+# Compiled binaries
+/bin/
+dhp-review
+dhp-review.exe
+dhp-registry
+dhp-registry.exe
+
+# Build output
+/dist/
+
+# Runtime artifacts
+/halo-data/
+*.dhpkg
+
+# Test artifacts
+/test-*
+/coverage.out

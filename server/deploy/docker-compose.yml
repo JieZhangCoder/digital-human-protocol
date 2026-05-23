@@ -1,0 +1,26 @@
+version: "3.9"
+
+# Single-node development / small-enterprise deployment.
+# For production, prefer the k8s manifests under deploy/k8s/.
+
+services:
+  registry:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: dhp-registry:latest
+    container_name: dhp-registry
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.example.yaml:/etc/dhp/config.yaml:ro
+      - artifacts:/var/lib/dhp/artifacts
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/registry", "--help"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  artifacts:

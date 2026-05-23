@@ -1,0 +1,69 @@
+# DHP server config — applies to both `dhp-review` CLI and `registry` HTTP server.
+# Copy this to /etc/dhp/config.yaml and edit before launch.
+
+# Listen address for the registry. Ignored by the review CLI.
+listen: ":8080"
+
+# Artifact storage backend.
+storage:
+  type: local                       # one of: local, s3, minio (s3 + path-style)
+  config:
+    path: "/var/lib/dhp/artifacts"  # local only
+    # bucket: dhp-artifacts          # s3/minio
+    # region: us-east-1
+    # endpoint: https://s3.amazonaws.com   # MinIO: e.g. http://minio:9000
+    # access_key_id: AKIA...
+    # secret_access_key: ...
+    # use_path_style: false          # set true for MinIO
+
+# AI judge endpoint — used by AI-backed rules (skill_code_safety, prompt_quality, …).
+# Leave endpoint empty to disable AI rules; they will be warn-skipped.
+ai_judge:
+  endpoint: "https://ai-judge.example.com/v1/review"
+  model: "claude-3-5-sonnet"
+  api_key: ""                       # optional Bearer token
+
+# Rule control.
+rules:
+  enabled:
+    - schema_valid
+    - slug_unique
+    - dangerous_permissions
+    - skill_code_safety
+    - prompt_quality
+    - metadata_compliance
+    - duplicate_detection
+    - sensitive_categories
+  disabled: []
+  allowlist:
+    # Permissions on this list pass the dangerous_permissions check.
+    dangerous_permissions: []
+  sensitive_keywords:
+    - financial advice
+    - investment
+    - stock pick
+    - medical diagnosis
+    - prescription
+    - election
+    - voting
+    - weapons
+    - self-harm
+
+# Bearer-token auth for POST /apps. Empty string disables auth — only safe
+# behind a private network. Rotating the token requires restarting the process.
+auth:
+  type: token
+  token: "replace-me-with-a-32+-char-random-string"
+
+# Registry URL used by slug_unique / duplicate_detection rules to query the
+# canonical index. May be an http(s) URL or a local filesystem path (useful
+# inside GitHub Actions where the repo is already checked out).
+registry_url: "https://openkursar.github.io/digital-human-protocol"
+
+# Overall threshold below which publishes auto-merge. Currently informational —
+# the binary's exit code is driven by the highest severity verdict.
+auto_merge_threshold: "low_risk"
+
+# Hard limits.
+request_timeout: 60s
+max_upload_bytes: 26214400          # 25 MiB
