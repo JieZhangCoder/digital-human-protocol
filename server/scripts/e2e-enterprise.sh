@@ -123,15 +123,25 @@ test "$(curl -fsS "http://127.0.0.1:$PORT/healthz" | grep -c '"status"')" = "1" 
   || die "/healthz did not return JSON with status"
 ok "/healthz returns 200 + JSON"
 
-dh=$(curl -fsS "http://127.0.0.1:$PORT/digital-humans.json")
-test "$dh" = "[]" \
-  || die "expected empty digital-humans.json on fresh registry, got: $dh"
-ok "/digital-humans.json starts empty"
-
-sk=$(curl -fsS "http://127.0.0.1:$PORT/skills.json")
-test "$sk" = "[]" \
-  || die "expected empty skills.json on fresh registry, got: $sk"
-ok "/skills.json starts empty"
+# Envelope shape: {version, generated_at, source, apps: []}.
+# Use python json to parse strictly — this pins both the envelope keys
+# AND the empty-array state on a fresh registry.
+check_envelope_empty() {
+  local url="$1" label="$2"
+  curl -fsS "$url" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+label = '$label'
+for k in ('version', 'generated_at', 'source', 'apps'):
+    assert k in data, f'{label} missing key {k!r}: {data}'
+assert isinstance(data['apps'], list), f'{label} apps not list: {data}'
+assert len(data['apps']) == 0, f'{label} apps not empty: {len(data[\"apps\"])}'
+" || die "envelope check failed for $label"
+}
+check_envelope_empty "http://127.0.0.1:$PORT/digital-humans.json" "digital-humans.json"
+ok "/digital-humans.json has envelope + apps[] is empty"
+check_envelope_empty "http://127.0.0.1:$PORT/skills.json" "skills.json"
+ok "/skills.json has envelope + apps[] is empty"
 
 # ── 3. publish a digital human ─────────────────────────────────────────────
 

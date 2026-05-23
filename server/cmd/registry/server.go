@@ -232,28 +232,74 @@ func (s *Server) handleInternalReview(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, report)
 }
 
+// envelope is the canonical registry index envelope shape the Halo client
+// (RegistryIndexSchema in halo.adapter.ts) and the static build-index.mjs
+// pipeline both produce. Keeping the registry HTTP server in sync with this
+// shape is what lets clients consume hosted indexes interchangeably whether
+// the source is a GitHub Pages mirror or the enterprise registry daemon.
+type envelope struct {
+	Version     int          `json:"version"`
+	GeneratedAt string       `json:"generated_at"`
+	Source      string       `json:"source"`
+	Apps        []indexEntry `json:"apps"`
+}
+
+// requestSource derives the index "source" URL from the incoming request so
+// clients can build artifact URLs without needing the registry's external
+// hostname configured anywhere. Honours X-Forwarded-Proto when behind a TLS
+// terminator.
+func requestSource(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	return fmt.Sprintf("%s://%s", scheme, r.Host)
+}
+
 func (s *Server) serveIndex(name, typeFilter string) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		s.mu.RLock()
 		entries := append([]indexEntry{}, s.indexes[typeFilter]...)
 		s.mu.RUnlock()
 		sort.Slice(entries, func(i, j int) bool { return entries[i].Slug < entries[j].Slug })
-		writeJSON(w, http.StatusOK, entries)
+		writeJSON(w, http.StatusOK, envelope{
+			Version:     1,
+			GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+			Source:      requestSource(r),
+			Apps:        entries,
+		})
 	}
 }
 
-func (s *Server) serveLegacyIndex(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) serveLegacyIndex(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
-	var merged []indexEntry
+	merged := []indexEntry{}
 	for _, list := range s.indexes {
 		merged = append(merged, list...)
 	}
 	s.mu.RUnlock()
 	sort.Slice(merged, func(i, j int) bool { return merged[i].Slug < merged[j].Slug })
-	writeJSON(w, http.StatusOK, map[string]any{
-		"deprecated": true,
-		"notice":     "use digital-humans.json / skills.json / mcps.json directly",
-		"entries":    merged,
+
+	// Legacy index uses the same envelope as the split files, with a
+	// `deprecated` flag tacked on so clients can warn / migrate. The
+	// canonical fields stay where clients expect them.
+	type legacyEnvelope struct {
+		envelope
+		Deprecated bool   `json:"deprecated"`
+		Notice     string `json:"notice"`
+	}
+	writeJSON(w, http.StatusOK, legacyEnvelope{
+		envelope: envelope{
+			Version:     1,
+			GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+			Source:      requestSource(r),
+			Apps:        merged,
+		},
+		Deprecated: true,
+		Notice:     "use digital-humans.json / skills.json / mcps.json directly",
 	})
 }
 
