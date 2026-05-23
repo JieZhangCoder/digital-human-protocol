@@ -48,6 +48,17 @@ func main() {
 	}
 
 	srv := NewServer(cfg, store)
+
+	// Rebuild in-memory indexes from persisted artifacts before serving.
+	// This is what makes the registry restart-safe: the storage layer is the
+	// source of truth and indexes are derived data.
+	rebuildCtx, rebuildCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	if err := srv.RebuildIndexes(rebuildCtx); err != nil {
+		rebuildCancel()
+		log.Fatalf("index rebuild: %v", err)
+	}
+	rebuildCancel()
+
 	httpSrv := &http.Server{
 		Addr:              cfg.Listen,
 		Handler:           srv.Handler(),

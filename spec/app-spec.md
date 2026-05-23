@@ -72,7 +72,7 @@ subscriptions:
 | `description` | `string` | **Yes** | One sentence describing what this agent does. |
 | `type` | `"automation" \| "skill" \| "mcp" \| "extension"` | **Yes** | App type. Determines which fields are required and how the agent runs. |
 | `icon` | `string` | No | Icon identifier (e.g. `"news"`, `"shopping"`) or image URL. |
-| `system_prompt` | `string` | **Yes** for `automation` and `skill` | The agent's core instruction set. Injected as the system prompt on every run. This is the primary place to define agent behavior — be specific and comprehensive. |
+| `system_prompt` | `string` | **Yes** for `automation`; recommended for `skill` | The agent's core instruction set. Injected as the system prompt on every run. For `skill` it is optional when the bundle ships a `SKILL.md` (Claude Code skill convention) — at install time the runtime reads `SKILL.md` as the instruction source. Authors should pick one or the other; providing both is allowed and `system_prompt` wins. |
 | `subscriptions` | `SubscriptionDef[]` | Required for `automation` | Trigger sources. At least one required for automations. See [Section 3](#3-subscriptions--trigger-sources). |
 | `config_schema` | `InputDef[]` | No | User-configurable fields shown at install time. See [Section 4](#4-config_schema--user-configuration). |
 | `requires` | `Requires` | No | External MCP servers and skills the agent depends on. See [Section 5](#5-requires--dependencies). |

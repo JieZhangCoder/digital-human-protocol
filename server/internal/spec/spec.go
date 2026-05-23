@@ -278,9 +278,13 @@ func Validate(s *Spec) error {
 			v.add("at least one subscription is required for type:automation")
 		}
 	case TypeSkill:
-		if strings.TrimSpace(s.SystemPrompt) == "" {
-			v.add("system_prompt is required for type:skill")
-		}
+		// system_prompt is recommended for skills but not strictly required:
+		// Claude Code-style skills carry their instructions in SKILL.md (which
+		// becomes part of skill_files at install time). When neither is present
+		// the skill is still installable but won't have any guidance — the
+		// publishing client is responsible for ensuring at least one of the two
+		// is provided. The registry doesn't see skill_files at validate time,
+		// so we accept the spec and rely on client-side checks for completeness.
 		if len(s.Subscriptions) > 0 {
 			v.add("type:skill must not declare subscriptions")
 		}

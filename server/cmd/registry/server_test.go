@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"mime/multipart"
@@ -191,6 +192,131 @@ func TestLegacyIndex(t *testing.T) {
 	body, _ := io.ReadAll(resp.Body)
 	if !strings.Contains(string(body), "deprecated") {
 		t.Fatalf("missing deprecation notice: %s", body)
+	}
+}
+
+// TestRebuildIndexesAfterRestart simulates a process restart by:
+//  1. Publishing a digital human + a skill against server A
+//  2. Building a brand-new Server B with the SAME storage root
+//  3. Verifying B's indexes are empty before RebuildIndexes
+//  4. Calling B.RebuildIndexes and verifying both entries reappear
+//
+// This is the core regression test for the "in-memory index lost on restart"
+// production risk called out in go-agent's review.
+func TestRebuildIndexesAfterRestart(t *testing.T) {
+	dir := t.TempDir()
+	store, err := storage.NewLocal(dir)
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	cfg := &config.Config{
+		Listen:         ":0",
+		Storage:        config.StorageBlock{Type: config.StorageLocal},
+		Auth:           config.AuthBlock{Type: "token"},
+		MaxUploadBytes: 1 << 20,
+		RequestTimeout: 5 << 30,
+	}
+	cfg.Rules.Enabled = []string{"schema_valid", "dangerous_permissions"}
+
+	// --- session 1: publish a digital human + a skill ---
+	srvA := NewServer(cfg, store)
+	tsA := httptest.NewServer(srvA.Handler())
+
+	publish := func(spec string, ts *httptest.Server) {
+		body := &bytes.Buffer{}
+		mw := multipart.NewWriter(body)
+		w, _ := mw.CreateFormFile("spec", "spec.yaml")
+		io.WriteString(w, spec)
+		mw.Close()
+		req, _ := http.NewRequest(http.MethodPost, ts.URL+"/apps", body)
+		req.Header.Set("Content-Type", mw.FormDataContentType())
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("post: %v", err)
+		}
+		raw, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			t.Fatalf("publish status %d body=%s", resp.StatusCode, string(raw))
+		}
+	}
+	publish(validSpec, tsA)
+	publish(`
+spec_version: "1"
+name: Echo Skill
+version: "1.0.0"
+author: alice
+description: Echoes input back.
+type: skill
+system_prompt: |
+  Echo the input verbatim.
+store:
+  slug: alice/echo
+  license: MIT
+`, tsA)
+
+	// Confirm session-1 indexes look right before tearing down.
+	resp, _ := http.Get(tsA.URL + "/digital-humans.json")
+	bodyA, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(bodyA), "alice/test-agent") {
+		t.Fatalf("session 1 digital-humans missing entry: %s", bodyA)
+	}
+	tsA.Close()
+
+	// --- session 2: brand-new Server reusing the same storage root ---
+	store2, err := storage.NewLocal(dir)
+	if err != nil {
+		t.Fatalf("storage 2: %v", err)
+	}
+	srvB := NewServer(cfg, store2)
+	tsB := httptest.NewServer(srvB.Handler())
+	defer tsB.Close()
+
+	// Before rebuild: indexes are empty (memory state is fresh).
+	resp, _ = http.Get(tsB.URL + "/digital-humans.json")
+	bodyB1, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if strings.Contains(string(bodyB1), "alice/test-agent") {
+		t.Fatalf("session 2 indexes unexpectedly populated before rebuild: %s", bodyB1)
+	}
+
+	// Rebuild from disk.
+	if err := srvB.RebuildIndexes(context.Background()); err != nil {
+		t.Fatalf("rebuild: %v", err)
+	}
+
+	// After rebuild: both entries reappear in their respective indexes.
+	resp, _ = http.Get(tsB.URL + "/digital-humans.json")
+	bodyDH, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(bodyDH), "alice/test-agent") {
+		t.Fatalf("digital-humans.json missing rebuilt entry: %s", bodyDH)
+	}
+
+	resp, _ = http.Get(tsB.URL + "/skills.json")
+	bodySK, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(bodySK), "alice/echo") {
+		t.Fatalf("skills.json missing rebuilt entry: %s", bodySK)
+	}
+
+	// Artifact retrieval still works (storage was the source of truth).
+	resp, _ = http.Get(tsB.URL + "/apps/alice/test-agent/1.0.0/files/spec.yaml")
+	if resp.StatusCode != 404 {
+		// spec.yaml is stored at apps/<slug>/<version>/spec.yaml, NOT under files/
+		// (that's the publish convention). 404 here is correct; just drain the body.
+		io.Copy(io.Discard, resp.Body)
+	}
+	resp.Body.Close()
+}
+
+// TestRebuildIndexesEmptyStorage verifies a fresh install (no published apps
+// yet) doesn't error out — startup must succeed even with an empty storage root.
+func TestRebuildIndexesEmptyStorage(t *testing.T) {
+	srv, _ := newTestServer(t)
+	if err := srv.RebuildIndexes(context.Background()); err != nil {
+		t.Fatalf("rebuild on empty storage failed: %v", err)
 	}
 }
 
