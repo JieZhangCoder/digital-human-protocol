@@ -1,0 +1,47 @@
+# Local-test config for dhp-registry.
+#
+# Mirrors the shape that an enterprise operator would write (see
+# config.example.yaml for the documented schema), but with values
+# wired up for a single-machine smoke test:
+#
+#   - listen on 127.0.0.1:18181 (loopback only, no external exposure)
+#   - storage under /tmp/dhp-local-enterprise/data (writable without sudo)
+#   - fixed token "enterprise-local-test" that matches the Halo client
+#     side override in halo-local/product.webank.local.json
+#   - AI judge endpoint left empty; the 4 AI rules degrade to "warn"
+#     (fail-open). Pattern rules remain active.
+#
+# Start: ./bin/dhp-registry --config=deploy/config.local-test.yaml
+# Stop:  Ctrl-C  (or `pkill dhp-registry` if backgrounded)
+
+listen: ":18181"
+
+storage:
+  type: local
+  config:
+    path: "/tmp/dhp-local-enterprise/data"
+
+auth:
+  type: token
+  token: "enterprise-local-test"
+
+rules:
+  enabled:
+    - schema_valid
+    - slug_unique
+    - dangerous_permissions
+    - sensitive_categories
+    # Uncomment after configuring ai_judge.endpoint below:
+    # - skill_code_safety
+    # - prompt_quality
+    # - metadata_compliance
+    # - duplicate_detection
+
+ai_judge:
+  endpoint: ""   # set to a chat.completions URL to enable AI rules
+  model: ""
+  api_key: ""
+
+auto_merge_threshold: "low_risk"
+request_timeout: 60s
+max_upload_bytes: 26214400   # 25 MiB

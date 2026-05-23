@@ -13,5 +13,6 @@ dhp-registry.exe
 *.dhpkg
 
 # Test artifacts
-/test-*
+/test-tmp/
 /coverage.out
+*.test.tmp
