@@ -1,0 +1,342 @@
+name: DHP Review
+
+# Auto-review pull requests that touch spec.yaml files.
+#
+# Flow:
+#   1. Discover changed packages in this PR (spec.yaml under packages/).
+#   2. For each changed spec, run dhp-review (from the dhp-registry container image).
+#   3. Aggregate results into a single PR comment.
+#   4. Apply a label that reflects the worst verdict:
+#        - dhp:auto-merge   → all specs pass (exit 0)
+#        - dhp:needs-review → at least one warn (exit 1)
+#        - dhp:needs-fix    → at least one fail or runner error (exit 2 or 3)
+#   5. If all specs pass and the PR only modifies registry content (no workflow
+#      / scripts changes), auto-approve and enable repo auto-merge.
+#
+# The review binary lives in the production image so the workflow always runs
+# the same code path as the enterprise registry server. To pin to a specific
+# build, set repository variable DHP_REVIEW_IMAGE (default: latest on main).
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**/spec.yaml'
+      - 'packages/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to re-review (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: dhp-review-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  DHP_REVIEW_IMAGE: ${{ vars.DHP_REVIEW_IMAGE || 'ghcr.io/openkursar/dhp-registry:latest' }}
+  REGISTRY_URL: https://openkursar.github.io/digital-human-protocol
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    outputs:
+      worst_exit: ${{ steps.aggregate.outputs.worst_exit }}
+      spec_count: ${{ steps.discover.outputs.spec_count }}
+      report_path: ${{ steps.aggregate.outputs.report_path }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine base ref
+        id: base
+        run: |
+          base_ref="${{ github.event.pull_request.base.sha }}"
+          if [ -z "$base_ref" ]; then
+            base_ref="$(git rev-parse origin/main)"
+          fi
+          echo "sha=$base_ref" >> "$GITHUB_OUTPUT"
+
+      - name: Discover changed specs
+        id: discover
+        run: |
+          set -euo pipefail
+          # List spec.yaml files that exist on this PR head AND have changed
+          # relative to the base. Deletions are intentionally ignored — they
+          # are caught by the deploy workflow's integrity check.
+          git diff --name-only --diff-filter=AM \
+            "${{ steps.base.outputs.sha }}" HEAD \
+            -- 'packages/**/spec.yaml' > changed.txt || true
+
+          mapfile -t SPECS < changed.txt
+          echo "spec_count=${#SPECS[@]}" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "${SPECS[@]}" > specs.list
+          echo "Found ${#SPECS[@]} changed spec(s)"
+          cat specs.list || true
+
+      - name: Skip if nothing to review
+        if: steps.discover.outputs.spec_count == '0'
+        run: |
+          echo "No spec.yaml changes detected — skipping review."
+
+      - name: Pull review image
+        if: steps.discover.outputs.spec_count != '0'
+        run: docker pull "$DHP_REVIEW_IMAGE"
+
+      - name: Stage review config
+        if: steps.discover.outputs.spec_count != '0'
+        env:
+          AI_JUDGE_ENDPOINT: ${{ secrets.DHP_AI_JUDGE_ENDPOINT }}
+          AI_JUDGE_MODEL: ${{ vars.DHP_AI_JUDGE_MODEL || '' }}
+        run: |
+          set -euo pipefail
+          mkdir -p .review
+          # Build a minimal review.yaml. AI endpoint is optional — when omitted,
+          # AI rules degrade to "warn" (fail-open) so the workflow still runs
+          # on forks that don't have access to the secret.
+          {
+            echo "registry_url: $REGISTRY_URL"
+            echo "ai_judge:"
+            if [ -n "$AI_JUDGE_ENDPOINT" ]; then
+              echo "  endpoint: \"$AI_JUDGE_ENDPOINT\""
+              [ -n "$AI_JUDGE_MODEL" ] && echo "  model: \"$AI_JUDGE_MODEL\""
+            else
+              echo "  endpoint: \"\"  # unset: AI rules will warn"
+            fi
+            echo "rules:"
+            echo "  enabled:"
+            echo "    - schema_valid"
+            echo "    - slug_unique"
+            echo "    - dangerous_permissions"
+            echo "    - sensitive_categories"
+            echo "    - skill_code_safety"
+            echo "    - prompt_quality"
+            echo "    - metadata_compliance"
+            echo "    - duplicate_detection"
+            echo "auto_merge_threshold: low_risk"
+          } > .review/review.yaml
+          cat .review/review.yaml
+
+      - name: Run dhp-review on each spec
+        if: steps.discover.outputs.spec_count != '0'
+        id: aggregate
+        run: |
+          set -uo pipefail
+          worst=0
+          mkdir -p .review/reports
+          {
+            echo "## DHP Review Report"
+            echo
+            echo "Image: \`$DHP_REVIEW_IMAGE\`"
+            echo "Specs reviewed: ${{ steps.discover.outputs.spec_count }}"
+            echo
+          } > .review/report.md
+
+          while IFS= read -r spec; do
+            [ -z "$spec" ] && continue
+            slug="$(echo "$spec" | sed -E 's|packages/[^/]+/(.*)/spec\.yaml|\1|')"
+            out=".review/reports/${slug//\//__}.md"
+            echo "::group::Review: $spec"
+
+            docker run --rm \
+              --network=host \
+              --entrypoint /usr/local/bin/dhp-review \
+              -v "$PWD:/workspace" -w /workspace \
+              "$DHP_REVIEW_IMAGE" \
+              --spec="$spec" \
+              --config=.review/review.yaml \
+              --registry-url="$REGISTRY_URL" \
+              --format=markdown \
+              --out="$out"
+            rc=$?
+            echo "exit=$rc"
+            echo "::endgroup::"
+
+            if [ "$rc" -gt "$worst" ]; then worst=$rc; fi
+
+            {
+              echo "### \`$spec\` — exit $rc"
+              echo
+              cat "$out"
+              echo
+              echo "---"
+              echo
+            } >> .review/report.md
+          done < specs.list
+
+          # Drop trailing separator
+          sed -i '$d' .review/report.md
+          sed -i '$d' .review/report.md
+          echo "worst_exit=$worst" >> "$GITHUB_OUTPUT"
+          echo "report_path=.review/report.md" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload report artifact
+        if: steps.discover.outputs.spec_count != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dhp-review-report
+          path: .review/report.md
+          retention-days: 30
+
+      - name: Post PR comment
+        if: steps.discover.outputs.spec_count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('.review/report.md', 'utf8');
+            const marker = '<!-- dhp-review-comment -->';
+            const fullBody = `${marker}\n${body}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+            const existing = comments.find(c => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: fullBody,
+              });
+            }
+
+      - name: Label PR with verdict
+        if: steps.discover.outputs.spec_count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const worst = parseInt('${{ steps.aggregate.outputs.worst_exit }}', 10);
+            const allLabels = ['dhp:auto-merge', 'dhp:needs-review', 'dhp:needs-fix'];
+            let next;
+            if (worst === 0)        next = 'dhp:auto-merge';
+            else if (worst === 1)   next = 'dhp:needs-review';
+            else                    next = 'dhp:needs-fix';
+
+            // Ensure required labels exist; create on demand.
+            const desc = {
+              'dhp:auto-merge':   { color: '0e8a16', description: 'DHP review passed — eligible for auto-merge.' },
+              'dhp:needs-review': { color: 'fbca04', description: 'DHP review surfaced warnings — needs human eyes.' },
+              'dhp:needs-fix':    { color: 'b60205', description: 'DHP review blocked — please fix the issues.' },
+            };
+            for (const l of allLabels) {
+              try {
+                await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: l });
+              } catch (err) {
+                if (err.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: l,
+                    color: desc[l].color,
+                    description: desc[l].description,
+                  });
+                }
+              }
+            }
+
+            // Remove stale verdict labels.
+            const pr = context.payload.pull_request;
+            for (const l of allLabels) {
+              if (l === next) continue;
+              if (pr.labels.some(p => p.name === l)) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    name: l,
+                  });
+                } catch (err) {
+                  if (err.status !== 404) throw err;
+                }
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [next],
+            });
+
+  auto-merge:
+    needs: review
+    if: |
+      needs.review.outputs.worst_exit == '0' &&
+      needs.review.outputs.spec_count != '0' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Guard — only auto-merge content-only PRs
+        id: guard
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Refuse to auto-merge if the PR also touches workflows, scripts,
+          # server code, or root config — those need human review regardless
+          # of the spec review verdict.
+          changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "Changed files:"
+          echo "$changed"
+          if echo "$changed" | grep -qE '^(\.github/|scripts/|server/|spec/|package\.json|package-lock\.json)'; then
+            echo "::notice::Non-content paths changed — skipping auto-merge."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Approve PR
+        if: steps.guard.outputs.ok == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              event: 'APPROVE',
+              body: 'Auto-approved by DHP review (all checks passed).',
+            });
+
+      - name: Enable auto-merge
+        if: steps.guard.outputs.ok == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Repo must have auto-merge enabled in settings; we use squash.
+            try {
+              await github.graphql(`
+                mutation($pr: ID!) {
+                  enablePullRequestAutoMerge(input: { pullRequestId: $pr, mergeMethod: SQUASH }) {
+                    pullRequest { number }
+                  }
+                }
+              `, { pr: context.payload.pull_request.node_id });
+            } catch (err) {
+              core.warning('enablePullRequestAutoMerge failed: ' + err.message);
+            }
