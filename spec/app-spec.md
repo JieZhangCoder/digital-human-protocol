@@ -345,18 +345,50 @@ Each entry is a `SkillDependency`, in either shorthand or object form:
 
 ```yaml
 skills:
-  - summarizer              # shorthand: just the skill id
-  - id: price-analysis      # object form
+  - summarizer                     # shorthand: just the skill id
+  - id: openkursar/xhs-search      # scoped registry skill
+    version: "^2.1"                # caret range — accepts any 2.x >= 2.1.0
+  - id: openkursar/xhs-comment
+    version: "1.0.3"               # pinned exact version
+  - id: price-analysis             # object form
     reason: "..."
-    bundled: true
+    bundled: true                  # private / tightly-coupled — never resolved from registry
 ```
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `id` | `string` | **Yes** (object form) | Skill identifier. |
+| `id` | `string` | **Yes** (object form) | Skill identifier. Unscoped (`"summarizer"`) or scoped (`"openkursar/xhs-search"`). Scoped form is recommended for standalone registry skills. |
+| `version` | `string` | No | DHP v2+ version constraint. Omitted ⇒ `latest`. See "Version Constraint Syntax" below. Mutually exclusive with `bundled: true`. |
 | `reason` | `string` | No | Why this skill is needed. |
-| `bundled` | `boolean` | No | Whether the skill files are co-located inside the package's `skills/{id}/` directory. When `true`, the runtime fetches files directly from the package instead of querying the store. |
+| `bundled` | `boolean` | No | Whether the skill files are co-located inside the package's `skills/{id}/` directory. When `true`, the runtime fetches files directly from the package instead of querying the registry. See "Bundled Mode" below. |
 | `files` | `string[]` | No (required when `bundled: true`) | Relative file paths within the `skills/{id}/` directory. Supports nested paths (e.g. `lib/utils.js`). Used by the runtime to download the skill files at install time. |
+
+#### Version Constraint Syntax
+
+| Form | Meaning | Example |
+|---|---|---|
+| Exact | Pinned semver, must equal precisely | `"2.1.0"` |
+| Caret range | `^X.Y` or `^X.Y.Z` resolves to `>=X.Y.Z <(X+1).0.0` | `"^2.1"` → 2.1.0 ≤ v < 3.0.0 |
+| Omitted | Resolver treats as `latest` available | — |
+
+Pre-release/build suffixes (`-beta`, `+build`) and other semver range
+operators (`~`, `>=`, `||`, etc.) are reserved for a future protocol
+revision and rejected by current validators.
+
+#### Bundled Mode
+
+`bundled: true` is a deliberate escape hatch for cases where registry
+resolution is undesirable:
+
+1. **Private skills** — internal capability never intended for the registry.
+2. **Tight coupling** — skill so specific to one digital human that
+   independent versioning would create more risk than value.
+3. **Version isolation** — agent must run with one exact, frozen skill
+   build regardless of registry state (e.g. offline deployments).
+
+`bundled: true` is mutually exclusive with `version`. Bundled files live
+inside the agent's package and travel with it; no registry lookup, no
+version negotiation.
 
 ---
 
@@ -710,6 +742,10 @@ Examples:
 
 ### Store Slug
 
+Two forms are accepted:
+
+**Unscoped (legacy / digital humans / MCPs):**
+
 ```
 ^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$
 ```
@@ -719,9 +755,68 @@ Examples:
 - Valid: `"hn-daily"`, `"github-pr-reviewer"`, `"postgres-mcp"`
 - Invalid: `"-bad"`, `"bad-"`, `"MyAgent"`, `"my_agent"`
 
+**Scoped (DHP v2+, standalone skills only):**
+
+```
+^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$
+```
+
+- `<author>/<id>` — exactly one slash, each segment matches the unscoped rule
+- Reserved for `type: skill` published under `packages/skills/<author>/<id>/`
+- Valid: `"openkursar/xhs-search"`, `"alice/markdown-helper"`
+- Invalid: `"openkursar//xhs"`, `"/leading"`, `"trailing/"`, `"a/b/c"`
+
+Scoped slugs let independent contributors publish skills under their own
+namespace without colliding with the global flat namespace used by digital
+humans and MCPs.
+
+### Skill Versioning
+
+When `type: skill`, the top-level `version` field MUST match strict semver:
+
+```
+^\d+\.\d+\.\d+$
+```
+
+Pre-release and build metadata suffixes (`-beta`, `+build`) are reserved for a
+future protocol revision and rejected by current validators. Digital humans,
+MCPs, and extensions retain the loose version policy described in
+[Section 2](#2-top-level-fields).
+
+Skill version bumps follow standard semver semantics:
+
+- **Patch** (`1.0.0` → `1.0.1`): backward-compatible bug fixes.
+- **Minor** (`1.0.0` → `1.1.0`): backward-compatible additions.
+- **Major** (`1.0.0` → `2.0.0`): breaking changes to the skill's contract.
+
+Consumers (digital humans depending on a skill) use these semantics through
+caret ranges in `requires.skills[].version` to opt into safe upgrades. See
+[Section 5](#5-requires--dependencies).
+
 ---
 
 ## 15. Backward Compatibility
+
+### Registry Index Format (DHP v2 Transition)
+
+DHP v2 introduces three split registry files keyed by `type`:
+
+| File | Contents |
+|---|---|
+| `digital-humans.json` | All entries with `type: automation` |
+| `skills.json` | All entries with `type: skill` |
+| `mcps.json` | All entries with `type: mcp` |
+
+Each split file uses the same top-level envelope as the legacy
+`index.json` (`version`, `generated_at`, `source`, `apps[]`).
+
+The consolidated `index.json` is retained for back-compat — it carries a
+top-level `deprecated` string explaining its impending removal. Registries
+MUST publish all four files for at least one major protocol version cycle.
+Clients SHOULD prefer the split files (parallel fetch, smaller payload per
+tab) and fall back to `index.json` when split files are not available.
+
+### Legacy Field Aliases
 
 The parser automatically normalizes legacy field names. New specs should use canonical names.
 
