@@ -1337,6 +1337,5 @@
         }
       }
     }
-  ],
-  "deprecated": "Use digital-humans.json / skills.json / mcps.json. index.json is scheduled for removal in DHP v3."
+  ]
 }

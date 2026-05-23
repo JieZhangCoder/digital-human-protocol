@@ -6,7 +6,25 @@ import { basename, join, relative, sep } from "path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const DEFAULT_SOURCE = "https://openkursar.github.io/digital-human-protocol";
-const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+
+// Slug formats:
+//   - Unscoped (legacy):  "hn-daily"               → kebab-case, no slash
+//   - Scoped (DHP v2+):   "openkursar/xhs-search"  → "<author>/<id>", single slash
+//
+// Scoped slugs are reserved for type=skill (and standalone skills under
+// packages/skills/<author>/<id>/). Digital humans and MCPs continue to use
+// unscoped slugs for back-compat with the 33 existing bundles.
+const UNSCOPED_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+const SCOPED_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+const STRICT_SEMVER_REGEX = /^\d+\.\d+\.\d+$/;
+
+function isValidSlug(slug) {
+  return UNSCOPED_SLUG_REGEX.test(slug) || SCOPED_SLUG_REGEX.test(slug);
+}
+
+function isScopedSlug(slug) {
+  return SCOPED_SLUG_REGEX.test(slug);
+}
 
 function toPosixPath(pathValue) {
   return pathValue.split(sep).join("/");
@@ -43,6 +61,53 @@ function parseSpec(raw, relPath) {
   }
 }
 
+/**
+ * Skill dependency normalization.
+ *
+ * DHP v2 adds an optional `version` constraint per dependency. Output shape is
+ * always `Array<{id: string, version?: string}>` so consumers can rely on a
+ * single contract; legacy string-shorthand inputs are upgraded into objects.
+ *
+ * Version constraint syntax (validated, not resolved here):
+ *   - Exact:        "2.1.0"     → strict semver
+ *   - Caret range:  "^2.1" | "^2.1.0"
+ *   - Omitted       → consumer treats as "latest"
+ */
+const CARET_RANGE_REGEX = /^\^\d+\.\d+(?:\.\d+)?$/;
+
+function isValidSkillVersionConstraint(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value !== "string") return false;
+  return STRICT_SEMVER_REGEX.test(value) || CARET_RANGE_REGEX.test(value);
+}
+
+function mapSkillDependencies(skills, specRelPath) {
+  if (!Array.isArray(skills)) return undefined;
+  const out = [];
+  for (const item of skills) {
+    if (typeof item === "string" && item.length > 0) {
+      out.push({ id: item });
+      continue;
+    }
+    if (item && typeof item === "object" && typeof item.id === "string" && item.id.length > 0) {
+      const entry = { id: item.id };
+      if (typeof item.version === "string" && item.version.length > 0) {
+        if (!isValidSkillVersionConstraint(item.version)) {
+          throw new Error(
+            `${specRelPath}: requires.skills entry "${item.id}" has invalid version constraint "${item.version}". ` +
+              `Expected strict semver ("2.1.0") or caret range ("^2.1" / "^2.1.0").`
+          );
+        }
+        entry.version = item.version;
+      }
+      out.push(entry);
+    }
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+// Kept for back-compat with consumers that expect a string[] of skill ids.
+// New consumers should use mapSkillDependencies which preserves version constraints.
 function mapSkillDependencyIds(skills) {
   if (!Array.isArray(skills)) return undefined;
   const ids = [];
@@ -227,12 +292,46 @@ function computeBundleStats(bundleDir, repoRoot) {
 
 function discoverBundles(repoRoot, packagesRoot) {
   const results = [];
+  if (!existsSync(packagesRoot)) return results;
   const packageTypes = readdirSync(packagesRoot, { withFileTypes: true });
 
   for (const typeEntry of packageTypes) {
     if (!typeEntry.isDirectory()) continue;
 
     const typeDir = join(packagesRoot, typeEntry.name);
+
+    // Skills get a 3-level walk: packages/skills/<author>/<id>/spec.yaml.
+    // This lets standalone skills use scoped slugs ("author/skill-id") so the
+    // registry can host independent skill contributions per DHP v2 §5/§6.
+    if (typeEntry.name === "skills") {
+      const authors = readdirSync(typeDir, { withFileTypes: true });
+      for (const authorEntry of authors) {
+        if (!authorEntry.isDirectory()) continue;
+        const authorDir = join(typeDir, authorEntry.name);
+        const skillEntries = readdirSync(authorDir, { withFileTypes: true });
+
+        for (const skillEntry of skillEntries) {
+          const skillPath = join(authorDir, skillEntry.name);
+          if (skillEntry.isFile() && skillEntry.name.endsWith(".yaml")) {
+            const rel = toPosixPath(relative(repoRoot, skillPath));
+            throw new Error(
+              `Legacy single-file skill detected at ${rel}. ` +
+                `Use bundle directory format: packages/skills/<author>/<slug>/spec.yaml`
+            );
+          }
+          if (!skillEntry.isDirectory()) continue;
+          const specPath = join(skillPath, "spec.yaml");
+          if (!existsSync(specPath)) continue;
+          results.push({
+            typeDirName: typeEntry.name,
+            bundleDir: skillPath,
+            specPath,
+          });
+        }
+      }
+      continue;
+    }
+
     const children = readdirSync(typeDir, { withFileTypes: true });
 
     for (const child of children) {
@@ -279,7 +378,7 @@ function buildIndex(repoRoot, source) {
   const bundles = discoverBundles(repoRoot, packagesRoot);
   const apps = [];
 
-  for (const { bundleDir, specPath } of bundles) {
+  for (const { typeDirName, bundleDir, specPath } of bundles) {
     const raw = readFileSync(specPath, "utf8");
     const specRelPath = toPosixPath(relative(repoRoot, specPath));
     const spec = parseSpec(raw, specRelPath);
@@ -292,18 +391,47 @@ function buildIndex(repoRoot, source) {
     }
 
     const bundleRelPath = toPosixPath(relative(repoRoot, bundleDir));
-    const slugFromDir = basename(bundleDir);
+
+    // For unscoped slugs the directory basename is the slug.
+    // For scoped slugs (skills only) the slug is "<author>/<id>" and the
+    // path under packages/skills/ encodes the same two segments.
+    const dirParts = bundleRelPath.split("/");
+    const isSkillsTree = typeDirName === "skills";
+    const slugFromDir = isSkillsTree && dirParts.length >= 4
+      ? `${dirParts[dirParts.length - 2]}/${dirParts[dirParts.length - 1]}`
+      : basename(bundleDir);
     const store = spec.store && typeof spec.store === "object" ? spec.store : {};
     const slug = typeof store.slug === "string" && store.slug.length > 0 ? store.slug : slugFromDir;
 
-    if (!SLUG_REGEX.test(slug)) {
-      throw new Error(`Invalid slug "${slug}" in ${specRelPath}`);
+    if (!isValidSlug(slug)) {
+      throw new Error(
+        `Invalid slug "${slug}" in ${specRelPath}. ` +
+          `Expected unscoped (e.g. "hn-daily") or scoped "<author>/<id>" (e.g. "openkursar/xhs-search").`
+      );
+    }
+
+    // Scoped slugs are only legal under packages/skills/<author>/<id>/.
+    // Reject mixing schemes (e.g. a scoped digital human slug).
+    if (isScopedSlug(slug) && !isSkillsTree) {
+      throw new Error(
+        `Scoped slug "${slug}" in ${specRelPath} is only valid for type=skill under packages/skills/`
+      );
     }
 
     if (slug !== slugFromDir) {
       throw new Error(
         `Slug mismatch in ${specRelPath}: store.slug=${slug} but bundle directory=${slugFromDir}`
       );
+    }
+
+    // Strict semver required for type=skill (DHP v2 §5.1).
+    if (spec.type === "skill") {
+      if (typeof spec.version !== "string" || !STRICT_SEMVER_REGEX.test(spec.version)) {
+        throw new Error(
+          `Invalid skill version "${spec.version}" in ${specRelPath}. ` +
+            `Skills require strict semver MAJOR.MINOR.PATCH (e.g. "1.0.0").`
+        );
+      }
     }
 
     const bundleStats = computeBundleStats(bundleDir, repoRoot);
@@ -337,6 +465,9 @@ function buildIndex(repoRoot, source) {
       min_app_version: typeof store.min_app_version === "string" ? store.min_app_version : undefined,
       requires_mcps: mapMcpDependencyIds(spec.requires && spec.requires.mcps),
       requires_skills: mapSkillDependencyIds(spec.requires && spec.requires.skills),
+      // DHP v2: full skill dependency objects with optional version constraints.
+      // Keep requires_skills (string[]) for back-compat consumers.
+      requires_skills_full: mapSkillDependencies(spec.requires && spec.requires.skills, specRelPath),
       updated_at: bundleStats.updatedAt,
       ...(i18n ? { i18n } : {}),
       ...(meta ? { meta } : {}),
@@ -355,46 +486,101 @@ function buildIndex(repoRoot, source) {
   };
 }
 
+// Split the consolidated index into per-type files.
+// Each split file uses the same envelope as the consolidated index.
+function splitIndexByType(index) {
+  const filterByType = (typeName) => ({
+    version: index.version,
+    generated_at: index.generated_at,
+    source: index.source,
+    apps: index.apps.filter((app) => app.type === typeName),
+  });
+  return {
+    "digital-humans.json": filterByType("automation"),
+    "skills.json": filterByType("skill"),
+    "mcps.json": filterByType("mcp"),
+  };
+}
+
+// Legacy consolidated index — kept for back-compat for at least one major
+// version cycle per DHP v2 §15. Consumers should migrate to the split files.
+function legacyConsolidatedIndex(index) {
+  return {
+    ...index,
+    deprecated:
+      "Use digital-humans.json / skills.json / mcps.json. " +
+      "index.json is scheduled for removal in DHP v3.",
+  };
+}
+
+const SPLIT_FILENAMES = ["digital-humans.json", "skills.json", "mcps.json"];
+const ALL_OUTPUT_FILENAMES = ["index.json", ...SPLIT_FILENAMES];
+
 function main() {
   const repoRoot = process.cwd();
-  const indexPath = join(repoRoot, "index.json");
   const { source, check } = parseArgs(process.argv.slice(2));
 
   const index = buildIndex(repoRoot, source);
-  const nextContent = `${JSON.stringify(index, null, 2)}\n`;
+  const splits = splitIndexByType(index);
+  const consolidated = legacyConsolidatedIndex(index);
+
+  const outputs = {
+    "index.json": consolidated,
+    ...splits,
+  };
 
   if (check) {
-    let currentContent = "";
-    try {
-      currentContent = readFileSync(indexPath, "utf8");
-    } catch {
-      currentContent = "";
+    for (const filename of ALL_OUTPUT_FILENAMES) {
+      const filePath = join(repoRoot, filename);
+      let currentContent = "";
+      try {
+        currentContent = readFileSync(filePath, "utf8");
+      } catch {
+        currentContent = "";
+      }
+
+      if (!currentContent) {
+        process.stderr.write(`${filename} is missing. Run: node scripts/build-index.mjs\n`);
+        process.exit(1);
+      }
+
+      let current;
+      try {
+        current = JSON.parse(currentContent);
+      } catch {
+        process.stderr.write(`${filename} is invalid JSON. Run: node scripts/build-index.mjs\n`);
+        process.exit(1);
+      }
+
+      if (normalizeForCheck(current) !== normalizeForCheck(outputs[filename])) {
+        process.stderr.write(`${filename} is out of date. Run: node scripts/build-index.mjs\n`);
+        process.exit(1);
+      }
     }
 
-    if (!currentContent) {
-      process.stderr.write("index.json is missing. Run: node scripts/build-index.mjs\n");
-      process.exit(1);
-    }
-
-    let current;
-    try {
-      current = JSON.parse(currentContent);
-    } catch {
-      process.stderr.write("index.json is invalid JSON. Run: node scripts/build-index.mjs\n");
-      process.exit(1);
-    }
-
-    if (normalizeForCheck(current) !== normalizeForCheck(index)) {
-      process.stderr.write("index.json is out of date. Run: node scripts/build-index.mjs\n");
-      process.exit(1);
-    }
-
-    process.stdout.write(`[build-index] index.json is up to date (${index.apps.length} apps)\n`);
+    process.stdout.write(
+      `[build-index] all outputs up to date (` +
+        `index.json=${consolidated.apps.length}, ` +
+        `digital-humans=${splits["digital-humans.json"].apps.length}, ` +
+        `skills=${splits["skills.json"].apps.length}, ` +
+        `mcps=${splits["mcps.json"].apps.length})\n`
+    );
     return;
   }
 
-  writeFileSync(indexPath, nextContent, "utf8");
-  process.stdout.write(`[build-index] wrote index.json with ${index.apps.length} apps\n`);
+  for (const filename of ALL_OUTPUT_FILENAMES) {
+    const filePath = join(repoRoot, filename);
+    const content = `${JSON.stringify(outputs[filename], null, 2)}\n`;
+    writeFileSync(filePath, content, "utf8");
+  }
+
+  process.stdout.write(
+    `[build-index] wrote ` +
+      `index.json (${consolidated.apps.length} apps, deprecated), ` +
+      `digital-humans.json (${splits["digital-humans.json"].apps.length}), ` +
+      `skills.json (${splits["skills.json"].apps.length}), ` +
+      `mcps.json (${splits["mcps.json"].apps.length})\n`
+  );
 }
 
 main();
