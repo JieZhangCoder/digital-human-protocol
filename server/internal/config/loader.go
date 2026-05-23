@@ -66,14 +66,19 @@ type AuthBlock struct {
 	Token string `yaml:"token,omitempty"`
 }
 
-// Load reads a YAML file and applies defaults. Missing files return an error
-// because we'd rather fail loud than silently boot with no rules.
+// Load reads a YAML file and applies defaults. A missing file is treated
+// as "boot with defaults" (logged to stderr) so first-time setups succeed
+// without a config; a present-but-invalid file still fails loud.
 func Load(path string) (*Config, error) {
 	if path == "" {
 		return nil, errors.New("config: path is required")
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Fprintf(os.Stderr, "config: %s not found — using built-in defaults\n", path)
+			return Default(), nil
+		}
 		return nil, fmt.Errorf("config: read %s: %w", path, err)
 	}
 	var c Config
@@ -85,6 +90,15 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("config: validate %s: %w", path, err)
 	}
 	return &c, nil
+}
+
+// Default returns a config object pre-populated with the same defaults
+// applyDefaults() would set on a freshly parsed empty YAML. Used by Load
+// when the config file is absent.
+func Default() *Config {
+	c := &Config{}
+	c.applyDefaults()
+	return c
 }
 
 func (c *Config) applyDefaults() {

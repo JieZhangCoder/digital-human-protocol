@@ -50,8 +50,23 @@ auth:
 	}
 }
 
-func TestLoadMissingFile(t *testing.T) {
-	if _, err := Load("/no/such/path"); err == nil {
-		t.Fatalf("expected error for missing file")
+func TestLoadMissingFileUsesDefaults(t *testing.T) {
+	// Missing config files boot with built-in defaults (logged to stderr)
+	// so first-time installs succeed without manual config.
+	cfg, err := Load("/no/such/path")
+	if err != nil {
+		t.Fatalf("missing file should fall back to defaults, got error: %v", err)
+	}
+	if cfg.Listen != ":8080" {
+		t.Errorf("default listen: %s", cfg.Listen)
+	}
+	if !cfg.IsRuleEnabled("schema_valid") {
+		t.Errorf("schema_valid should be enabled in defaults")
+	}
+}
+
+func TestLoadEmptyPathFails(t *testing.T) {
+	if _, err := Load(""); err == nil {
+		t.Fatalf("expected error for empty path")
 	}
 }
