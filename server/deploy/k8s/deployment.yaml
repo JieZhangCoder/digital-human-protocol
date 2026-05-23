@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dhp-registry
+  namespace: dhp
+  labels:
+    app: dhp-registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate            # local-storage PVC requires single writer
+  selector:
+    matchLabels:
+      app: dhp-registry
+  template:
+    metadata:
+      labels:
+        app: dhp-registry
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: registry
+          image: ghcr.io/openkursar/dhp-registry:latest
+          imagePullPolicy: IfNotPresent
+          args: ["--config=/etc/dhp/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "1",    memory: "512Mi" }
+          volumeMounts:
+            - { name: config,    mountPath: /etc/dhp,            readOnly: true }
+            - { name: artifacts, mountPath: /var/lib/dhp/artifacts }
+      volumes:
+        - name: config
+          configMap:
+            name: dhp-registry-config
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: dhp-registry-artifacts
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dhp-registry-artifacts
+  namespace: dhp
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi

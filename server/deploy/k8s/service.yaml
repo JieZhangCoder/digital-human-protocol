@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dhp-registry
+  namespace: dhp
+  labels:
+    app: dhp-registry
+spec:
+  type: ClusterIP
+  selector:
+    app: dhp-registry
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
