@@ -320,6 +320,42 @@ func TestRebuildIndexesEmptyStorage(t *testing.T) {
 	}
 }
 
+// TestIndexEnvelopeShape pins the wire format of /digital-humans.json (and
+// siblings) to {version, generated_at, source, apps[]}. The Halo client's
+// RegistryIndexSchema is strict about these four keys — if the server ever
+// regresses to a bare array (as a previous iteration did), client sync silently
+// fails with "Invalid index format: version, generated_at, source, apps" and
+// the store appears stuck on stale cache.
+func TestIndexEnvelopeShape(t *testing.T) {
+	srv, _ := newTestServer(t)
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	for _, path := range []string{"/digital-humans.json", "/skills.json", "/mcps.json", "/index.json"} {
+		resp, err := http.Get(ts.URL + path)
+		if err != nil {
+			t.Fatalf("get %s: %v", path, err)
+		}
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		var decoded map[string]any
+		if err := json.Unmarshal(body, &decoded); err != nil {
+			t.Fatalf("%s did not decode as JSON object (likely a bare array — regression): %v body=%s", path, err, body)
+		}
+		for _, key := range []string{"version", "generated_at", "source", "apps"} {
+			if _, ok := decoded[key]; !ok {
+				t.Errorf("%s missing required envelope key %q (body=%s)", path, key, body)
+			}
+		}
+		if apps, ok := decoded["apps"].([]any); !ok {
+			t.Errorf("%s apps field is not an array (got %T)", path, decoded["apps"])
+		} else if path != "/index.json" && len(apps) != 0 {
+			t.Errorf("%s apps should be empty on fresh server (got %d)", path, len(apps))
+		}
+	}
+}
+
 func TestAuthEnforced(t *testing.T) {
 	srv, _ := newTestServer(t)
 	srv.cfg.Auth.Token = "secret"
