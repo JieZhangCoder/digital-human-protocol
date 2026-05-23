@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path"
 	"sort"
@@ -234,7 +235,7 @@ func (s *Server) handleInternalReview(w http.ResponseWriter, r *http.Request) {
 func (s *Server) serveIndex(name, typeFilter string) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		s.mu.RLock()
-		entries := append([]indexEntry(nil), s.indexes[typeFilter]...)
+		entries := append([]indexEntry{}, s.indexes[typeFilter]...)
 		s.mu.RUnlock()
 		sort.Slice(entries, func(i, j int) bool { return entries[i].Slug < entries[j].Slug })
 		writeJSON(w, http.StatusOK, entries)
@@ -341,6 +342,158 @@ func (s *Server) upsertIndex(parsed *spec.Spec, keyBase string, size int64, chec
 		list = append(list, entry)
 	}
 	s.indexes[bucket] = list
+}
+
+// RebuildIndexes scans the storage backend on boot and reconstructs the
+// in-memory indexes from the persisted `apps/<slug>/<version>/spec.yaml`
+// files. Without this, a process restart leaves the registry serving empty
+// index responses until the next successful publish.
+//
+// The function is intentionally tolerant: a single corrupted spec is logged
+// and skipped rather than aborting startup. Total cost is O(N) where N is
+// the number of published versions — fine for thousands of apps, deferred
+// to a snapshot file only if that ceiling becomes a problem.
+func (s *Server) RebuildIndexes(ctx context.Context) error {
+	keys, err := s.store.List(ctx, "apps")
+	if err != nil {
+		return fmt.Errorf("list storage: %w", err)
+	}
+
+	// Group keys by their owning <slug>/<version> base so we can compute a
+	// per-version checksum + size in one pass over the file set. A slug may
+	// be flat ("hn-daily") or scoped ("author/id") — we recover this from
+	// the storage key by treating everything between "apps/" and "/<version>"
+	// as the slug.
+	type bundleKey struct {
+		slug, version string
+	}
+	bundles := map[bundleKey]struct {
+		specKey string
+		files   []string
+	}{}
+
+	for _, k := range keys {
+		// Expected key shapes:
+		//   apps/<slug>/<version>/spec.yaml
+		//   apps/<slug>/<version>/files/<name>      (slug may contain '/')
+		rest := strings.TrimPrefix(k, "apps/")
+		if rest == k {
+			continue
+		}
+		// Find the boundary between <version> and the trailing path.
+		// We anchor on either "/spec.yaml" at the end or "/files/" mid-string.
+		var slug, version, tail string
+		switch {
+		case strings.HasSuffix(rest, "/spec.yaml"):
+			head := strings.TrimSuffix(rest, "/spec.yaml")
+			i := strings.LastIndex(head, "/")
+			if i <= 0 {
+				continue
+			}
+			slug, version = head[:i], head[i+1:]
+			tail = "spec.yaml"
+		default:
+			i := strings.Index(rest, "/files/")
+			if i <= 0 {
+				continue
+			}
+			head := rest[:i]
+			j := strings.LastIndex(head, "/")
+			if j <= 0 {
+				continue
+			}
+			slug, version = head[:j], head[j+1:]
+			tail = rest[i+1:] // "files/<name>"
+		}
+
+		bk := bundleKey{slug, version}
+		b := bundles[bk]
+		if tail == "spec.yaml" {
+			b.specKey = k
+		} else {
+			b.files = append(b.files, k)
+		}
+		bundles[bk] = b
+	}
+
+	rebuilt := 0
+	skipped := 0
+	for bk, b := range bundles {
+		if b.specKey == "" {
+			log.Printf("[index-rebuild] skip %s@%s: no spec.yaml", bk.slug, bk.version)
+			skipped++
+			continue
+		}
+
+		rc, _, err := s.store.Get(ctx, b.specKey)
+		if err != nil {
+			log.Printf("[index-rebuild] skip %s@%s: read spec failed: %v", bk.slug, bk.version, err)
+			skipped++
+			continue
+		}
+		specBytes, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			log.Printf("[index-rebuild] skip %s@%s: read spec body failed: %v", bk.slug, bk.version, err)
+			skipped++
+			continue
+		}
+
+		parsed, err := spec.Parse(specBytes)
+		if err != nil {
+			log.Printf("[index-rebuild] skip %s@%s: parse failed: %v", bk.slug, bk.version, err)
+			skipped++
+			continue
+		}
+
+		// Verify the stored slug matches what the directory says — defensive
+		// guard against tampered filesystems.
+		if got := parsed.Slug(); got != bk.slug {
+			log.Printf("[index-rebuild] skip %s@%s: slug mismatch (spec says %q)", bk.slug, bk.version, got)
+			skipped++
+			continue
+		}
+
+		// Recompute size + checksum across spec + files (same order as publish).
+		hasher := sha256.New()
+		var totalSize int64
+		hasher.Write(specBytes)
+		totalSize += int64(len(specBytes))
+
+		// Sort files for stable hash ordering — different list ordering must
+		// not produce different checksums.
+		sort.Strings(b.files)
+		for _, fk := range b.files {
+			frc, fsize, err := s.store.Get(ctx, fk)
+			if err != nil {
+				log.Printf("[index-rebuild] skip %s@%s: read file %s failed: %v", bk.slug, bk.version, fk, err)
+				skipped++
+				goto nextBundle
+			}
+			data, err := io.ReadAll(frc)
+			frc.Close()
+			if err != nil {
+				log.Printf("[index-rebuild] skip %s@%s: read file body %s failed: %v", bk.slug, bk.version, fk, err)
+				skipped++
+				goto nextBundle
+			}
+			hasher.Write(data)
+			if fsize > 0 {
+				totalSize += fsize
+			} else {
+				totalSize += int64(len(data))
+			}
+		}
+
+		s.upsertIndex(parsed, path.Join("apps", bk.slug, bk.version), totalSize, "sha256:"+hex.EncodeToString(hasher.Sum(nil)))
+		rebuilt++
+	nextBundle:
+	}
+
+	log.Printf("[index-rebuild] complete: rebuilt=%d skipped=%d (digital-humans=%d skills=%d mcps=%d)",
+		rebuilt, skipped,
+		len(s.indexes["automation"]), len(s.indexes["skill"]), len(s.indexes["mcp"]))
+	return nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
