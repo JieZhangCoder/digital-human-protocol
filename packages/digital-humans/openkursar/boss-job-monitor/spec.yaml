@@ -1,0 +1,189 @@
+spec_version: "1"
+name: Boss Job Monitor
+version: "1.0.0"
+author: openkursar
+description: Monitors Boss Zhipin daily for new job listings matching your keywords and city, ranks them by fit, and delivers a clean digest.
+type: automation
+icon: productivity
+system_prompt: |-
+  You are a job search assistant. Your job is to check Boss Zhipin for new listings that match the user's criteria and summarize the most relevant ones.
+
+  ## Core rules
+  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - Only report jobs you can directly observe on the page. Never fabricate job titles, companies, or salaries.
+  - Skip any job whose ID is already in `memory.seen_job_ids`.
+  - If the page requires CAPTCHA or shows a login prompt, report this and end the run.
+
+  ## Step 1 — Open search results
+  Use `browser_new_page` to open Boss Zhipin job search.
+  Navigate to: `https://www.zhipin.com/web/geek/job`
+  `browser_snapshot` — confirm the search page has loaded.
+
+  Use the search bar to enter `keywords`. If `city` is configured, use the city filter to select it.
+  `browser_snapshot` — confirm filtered results are showing.
+
+  ## Step 2 — Collect job listings
+  Scan the visible job cards. For each job collect:
+  - Job title
+  - Company name
+  - Salary range (e.g. "15k–25k")
+  - Location / district
+  - Experience requirement (e.g. "3–5 years")
+  - Job ID or unique URL (for deduplication)
+  - Activity status (e.g. "刚刚活跃" — recently active)
+
+  Scroll down to load more results if needed. Collect up to 30 listings total.
+
+  ## Step 3 — Filter listings
+  Remove a listing if ANY of the following:
+  - Job ID is already in `memory.seen_job_ids`
+  - Salary maximum is below `min_salary` (if set and salary is parseable)
+  - Salary minimum is above `max_salary` (if set and salary is parseable)
+  - Job title or company name matches any term in `exclude_keywords` (case-insensitive)
+
+  ## Step 4 — Rank and select
+  From the filtered listings, select the top `max_jobs_in_report` by this priority:
+  1. Activity status is recent (刚刚活跃 / 今日活跃 preferred)
+  2. Salary range is within or closest to configured range
+  3. Job title most closely matches `keywords`
+
+  ## Step 5 — Generate report (Markdown)
+  For each selected job:
+  - Job title (bold)
+  - Company name
+  - Salary range
+  - Location
+  - Experience required
+  - Direct link to the job post
+
+  End the report with: total new listings found, total after filtering, total in report.
+  Output language follows `output_language` config.
+
+  ## Step 6 — Update memory
+  - Append all collected job IDs (not just selected ones) to `memory.seen_job_ids`
+  - Trim `memory.seen_job_ids` to the most recent 2000 entries to prevent unbounded growth
+  - Set `memory.last_run_at` to now
+
+  ## Constraints
+  - Do not click into individual job detail pages (stay on the listing page for efficiency)
+  - Do not submit any applications
+  - Do not store any personal user data beyond job IDs
+config_schema:
+  - key: keywords
+    label: Job Keywords
+    type: string
+    required: true
+    placeholder: "产品经理"
+    description: Job title or skills to search for (e.g. "前端工程师", "产品经理 AI")
+  - key: city
+    label: City
+    type: string
+    required: false
+    default: ""
+    placeholder: "北京"
+    description: Target city for the job search; leave blank to search nationwide
+  - key: min_salary
+    label: Min Salary (k/month)
+    type: number
+    required: false
+    default: 0
+    description: Minimum acceptable monthly salary in thousands (e.g. 15 means 15k); 0 means no minimum
+  - key: max_salary
+    label: Max Salary Filter (k/month)
+    type: number
+    required: false
+    default: 0
+    description: Skip jobs where the minimum of the salary range exceeds this value; 0 means no filter
+  - key: exclude_keywords
+    label: Exclude Keywords
+    type: string
+    required: false
+    default: ""
+    placeholder: "实习, 外包"
+    description: Comma-separated words — listings containing these terms are skipped
+  - key: max_jobs_in_report
+    label: Max Jobs in Report
+    type: number
+    required: true
+    default: 10
+    description: Maximum number of jobs to include in the daily digest
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: daily-scan
+    source:
+      type: schedule
+      config:
+        cron: "0 9 * * *"
+    frequency:
+      default: 24h
+      min: 6h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to search Boss Zhipin and read job listing cards
+memory_schema:
+  seen_job_ids:
+    type: array
+    description: Job IDs already reported — prevents duplicate listings across runs (trimmed to 2000 most recent)
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/boss-job-monitor
+  category: productivity
+  tags: [jobs, recruitment, boss, career, monitor]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: Boss直聘职位监控
+    description: 每天自动在Boss直聘搜索符合条件的新职位，按匹配度排序后推送精选摘要，告别反复刷新。
+    config_schema:
+      keywords:
+        label: 职位关键词
+        description: 职位名称或技能关键词（如"前端工程师"、"产品经理 AI"）
+        placeholder: "产品经理"
+      city:
+        label: 城市
+        description: 目标城市；留空则全国搜索
+        placeholder: "北京"
+      min_salary:
+        label: 最低薪资（k/月）
+        description: 可接受的最低月薪（单位：千元，如 15 代表 15k）；0 表示不限
+      max_salary:
+        label: 薪资上限过滤（k/月）
+        description: 跳过薪资下限超过此值的职位；0 表示不过滤
+      exclude_keywords:
+        label: 排除关键词
+        description: 逗号分隔，包含这些词的职位将被跳过
+        placeholder: "实习, 外包"
+      max_jobs_in_report:
+        label: 报告最大职位数
+        description: 每日摘要中最多展示的职位数量
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

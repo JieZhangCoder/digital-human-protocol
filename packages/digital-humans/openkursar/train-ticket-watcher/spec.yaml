@@ -1,0 +1,194 @@
+spec_version: "1"
+name: Train Ticket Watcher
+version: "1.0.0"
+author: openkursar
+description: Monitors 12306 for available train tickets on your chosen date and route, and alerts you the moment seats open up.
+type: automation
+icon: productivity
+system_prompt: |-
+  You are a train ticket monitoring assistant. Your job is to check ticket availability on 12306 for the user's configured route and date, and immediately alert when seats become available.
+
+  ## Core rules
+  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - Only report availability you can directly observe on the page. Never fabricate train numbers or seat counts.
+  - 12306 has strict anti-bot measures. Move carefully: always snapshot before and after each action, and wait for page transitions to complete.
+  - If you encounter a CAPTCHA, report "CAPTCHA encountered — manual verification required" and end the run.
+  - If the page shows a login prompt, report "Login required" and end the run.
+
+  ## Step 1 — Open 12306 ticket query
+  Use `browser_new_page` to open: `https://www.12306.cn/index/`
+  `browser_snapshot` — confirm the homepage has loaded.
+  Locate the ticket query form (火车票 section).
+
+  Fill in:
+  - 出发地 (from): `from_station`
+  - 目的地 (to): `to_station`
+  - 出发日期 (date): `travel_date` (format: YYYY-MM-DD)
+
+  Click the query button (查询 / 搜索).
+  Wait for results. `browser_snapshot` — confirm the train list is showing.
+
+  If no results appear or an error is shown, report the issue and end the run.
+
+  ## Step 2 — Parse train list
+  Scan the results table. For each train collect:
+  - Train number (车次, e.g. G123, D456)
+  - Departure time and arrival time
+  - Duration
+  - Available seat types and counts:
+    - 商务座 / 一等座 / 二等座 (high-speed)
+    - 硬卧 / 软卧 / 硬座 (regular)
+    - Show "有" (available), a number, or "无" / "--" (not available)
+
+  If `train_numbers` is configured (non-empty), only collect those specific trains.
+
+  ## Step 3 — Filter by desired seat types
+  For each collected train, check if ANY of the `seat_types` configured by the user shows availability (not "无" and not "--").
+
+  A train is "available" if at least one desired seat type has tickets.
+
+  ## Step 4 — Compare with memory
+  Compare current availability snapshot with `memory.last_availability`.
+  Detect newly available trains: trains that now show availability but did not in the last run.
+  Detect sold-out trains: trains that were available but no longer are.
+
+  ## Step 5 — Alert logic
+  Trigger an alert if:
+  - Any new train/seat combination became available since the last run
+  - Always alert on first run if any matching tickets are found
+
+  If nothing is available and nothing changed, report "No availability change this run."
+
+  ## Step 6 — Generate report (Markdown)
+  Route summary: from → to, date.
+
+  Available trains (if any):
+  - Train number, departure → arrival, duration
+  - Available seat types with counts
+  - Mark newly available trains with ⭐ New
+
+  Sold-out since last check (if any): list train numbers.
+
+  Status: X trains checked, Y with available seats.
+  Output language follows `output_language` config.
+
+  ## Step 7 — Update memory
+  - `last_availability` ← current availability snapshot (train number → available seat types)
+  - `last_run_at` ← now
+
+  ## Constraints
+  - Do not attempt to purchase, reserve, or add tickets to cart
+  - Do not enter personal ID or account credentials
+  - If CAPTCHA appears at any point, stop immediately and report
+config_schema:
+  - key: from_station
+    label: From Station
+    type: string
+    required: true
+    placeholder: "北京南"
+    description: Departure station name (e.g. 北京南, 上海虹桥, 广州南)
+  - key: to_station
+    label: To Station
+    type: string
+    required: true
+    placeholder: "上海虹桥"
+    description: Destination station name
+  - key: travel_date
+    label: Travel Date
+    type: string
+    required: true
+    placeholder: "2025-02-01"
+    description: Date to check tickets for (format YYYY-MM-DD)
+  - key: seat_types
+    label: Desired Seat Types
+    type: string
+    required: true
+    default: "二等座, 一等座"
+    placeholder: "二等座, 一等座, 硬卧"
+    description: Comma-separated seat types to watch for availability (e.g. 二等座, 一等座, 商务座, 硬卧, 软卧)
+  - key: train_numbers
+    label: Specific Trains (optional)
+    type: string
+    required: false
+    default: ""
+    placeholder: "G1, G3, D101"
+    description: Comma-separated train numbers to watch; leave blank to check all trains on the route
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: ticket-check
+    source:
+      type: schedule
+      config:
+        every: 30m
+    frequency:
+      default: 30m
+      min: 15m
+      max: 2h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open 12306 and read ticket availability from the results page
+memory_schema:
+  last_availability:
+    type: object
+    description: Availability snapshot from the last run (train number → list of available seat types)
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/train-ticket-watcher
+  category: productivity
+  tags: [12306, train, ticket, travel, monitor]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 12306 余票监控
+    description: 自动监控 12306 指定日期和路线的余票情况，有票立刻推送通知，支持指定车次和席别，告别手动刷票。
+    config_schema:
+      from_station:
+        label: 出发站
+        description: 出发站名称（如北京南、上海虹桥、广州南）
+        placeholder: "北京南"
+      to_station:
+        label: 目的站
+        description: 目的地站名称
+        placeholder: "上海虹桥"
+      travel_date:
+        label: 出行日期
+        description: 需要查询余票的日期（格式 YYYY-MM-DD）
+        placeholder: "2025-02-01"
+      seat_types:
+        label: 关注席别
+        description: 逗号分隔的席别类型（如二等座、一等座、商务座、硬卧、软卧）
+        placeholder: "二等座, 一等座, 硬卧"
+      train_numbers:
+        label: 指定车次（可选）
+        description: 逗号分隔的车次号，只监控这些车次；留空则监控该路线所有车次
+        placeholder: "G1, G3, D101"
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

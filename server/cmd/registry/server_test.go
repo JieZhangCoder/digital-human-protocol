@@ -435,7 +435,7 @@ store:
 `,
 		},
 		{
-			name: "flat slug",
+			name: "flat slug (scoped)",
 			spec: `
 spec_version: "1"
 name: Flat Skill
@@ -446,7 +446,7 @@ type: skill
 system_prompt: |
   Hi.
 store:
-  slug: flat-skill
+  slug: bob/flat-skill
 `,
 		},
 	}

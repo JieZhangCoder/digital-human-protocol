@@ -153,6 +153,64 @@ func TestSlugFormat(t *testing.T) {
 	}
 }
 
+func TestValidatePublish(t *testing.T) {
+	cases := []struct {
+		name    string
+		author  string
+		slug    string
+		wantErr bool
+		errSub  string
+	}{
+		{"scoped ok", "fly", "fly/my-app", false, ""},
+		{"flat slug rejected", "fly", "my-app", true, "must be scoped"},
+		{"no slug", "fly", "", true, "required for publishing"},
+		{"prefix mismatch", "fly", "bob/my-app", true, "does not match author"},
+		{"derived author matches", "OpenKursar", "openkursar/xhs-search", false, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &Spec{
+				Name:    "Test",
+				Version: "1.0.0",
+				Author:  tc.author,
+				Type:    TypeAutomation,
+				Store:   &StoreMetadata{Slug: tc.slug},
+			}
+			if tc.slug == "" {
+				s.Store = nil
+				s.Name = "中文名" // no ASCII, DeriveSlug returns ""
+			}
+			err := ValidatePublish(s)
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tc.wantErr && err != nil && tc.errSub != "" {
+				if !strings.Contains(err.Error(), tc.errSub) {
+					t.Fatalf("error %q missing %q", err.Error(), tc.errSub)
+				}
+			}
+		})
+	}
+}
+
+func TestIsScopedSlug(t *testing.T) {
+	scoped := []string{"alice/foo", "openkursar/xhs-search", "a1/b2"}
+	flat := []string{"foo", "foo-bar", "alice/foo/bar"}
+	for _, s := range scoped {
+		if !IsScopedSlug(s) {
+			t.Errorf("want scoped: %q", s)
+		}
+	}
+	for _, s := range flat {
+		if IsScopedSlug(s) {
+			t.Errorf("want not scoped: %q", s)
+		}
+	}
+}
+
 func TestSkillDependencyShorthand(t *testing.T) {
 	body := `
 name: T

@@ -1,0 +1,154 @@
+spec_version: "1"
+name: JD Price Hunter
+version: "2.0.0"
+author: openkursar
+description: Monitors a JD product page for price drops and promotions, notifies when the price hits the target, and avoids duplicate alerts.
+type: automation
+icon: shopping
+system_prompt: |-
+  You are a price monitoring assistant. Your job is to track the current price and promotions of a JD product and alert when it reaches the target.
+
+  ## Core rules
+  - You MUST use AI Browser to visit the product page. Do NOT use WebFetch or any other network tool.
+  - Only report prices you can directly observe on the page. Never guess or fabricate a price.
+  - Prioritize the final checkout price (券后价 / 到手价) over the listed price when both are visible.
+  - If the price cannot be parsed (login wall, anti-scrape block, page structure change), report the failure reason clearly and do NOT update memory with a bad value.
+
+  ## Step 1 — Open the product page
+  Use AI Browser to open the product URL. Extract:
+  - Current price (prefer final checkout price)
+  - Any visible promotion text (sale, coupon, flash deal, etc.)
+  - Stock status (in stock / out of stock / delisted)
+
+  ## Step 2 — Compare with memory
+  Read `memory.last_seen_price`. Determine whether the price went up, down, or stayed the same.
+  Append a new entry to `price_history` (timestamp, price, promotion text, stock status).
+  Trim `price_history` to the most recent `max_price_history_items` entries.
+
+  ## Step 3 — Alert logic
+  Trigger a target-price alert when: `current_price <= target_price`.
+  Trigger a new-low alert when: `notify_on_every_drop` is true AND current price is a new historical low.
+  Suppress duplicate alerts: if the current price equals `memory.last_notified_price` and the last notification was within 6 hours, skip.
+
+  ## Step 4 — Output report (Markdown)
+  - Current price, target price, difference, and trend arrow
+  - Promotion context (if any)
+  - Stock status
+  - Whether an alert was triggered and why
+  Output language follows `output_language` config.
+
+  ## Step 5 — Update memory
+  - `last_seen_price`, `last_seen_promotion`, `last_seen_in_stock`
+  - `price_history` (trimmed to `max_price_history_items`)
+  - On alert: set `last_notified_price` and `last_notified_at`
+
+  ## Constraints
+  - Do not make buy/sell recommendations.
+  - Do not report unverifiable claims such as "all-time low".
+config_schema:
+  - key: product_url
+    label: Product URL
+    type: url
+    required: true
+    description: JD product detail page URL
+  - key: target_price
+    label: Target Price
+    type: number
+    required: true
+    description: Alert threshold — notified when price drops to or below this value
+  - key: notify_on_every_drop
+    label: Notify on Every Drop
+    type: boolean
+    required: true
+    default: false
+    description: When enabled, alerts on every new price low, not just when target is reached
+  - key: max_price_history_items
+    label: Max History Items
+    type: number
+    required: true
+    default: 120
+    description: Maximum number of price snapshots to retain in memory
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: price-check
+    source:
+      type: schedule
+      config:
+        every: 6h
+    frequency:
+      default: 6h
+      min: 1h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open the product page and extract price and promotion details
+memory_schema:
+  last_seen_price:
+    type: number
+    description: Most recently observed price
+  last_seen_promotion:
+    type: string
+    description: Most recently observed promotion text
+  last_seen_in_stock:
+    type: boolean
+    description: Most recently observed stock status
+  price_history:
+    type: array
+    description: Time-series snapshots of price, promotion, and stock (trimmed to max_price_history_items)
+  last_notified_price:
+    type: number
+    description: Price at which the last alert was sent — used to suppress duplicates
+  last_notified_at:
+    type: date
+    description: Timestamp of the last alert sent
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/jd-price-hunter
+  category: shopping
+  tags: [shopping, price, jd, alert]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 京东价格猎手
+    description: 监控京东商品页面的价格变动，在价格达到目标值或出现新低时发送通知，并避免重复提醒。
+    config_schema:
+      product_url:
+        label: 商品链接
+        description: 京东商品详情页链接
+        placeholder: "https://item.jd.com/..."
+      target_price:
+        label: 目标价格
+        description: 价格降至此值或以下时触发通知
+      notify_on_every_drop:
+        label: 每次降价均通知
+        description: 开启后，每次出现新低价都会通知，而不只是达到目标价格时
+      max_price_history_items:
+        label: 最大历史记录数
+        description: 内存中保留的最大价格快照数量
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

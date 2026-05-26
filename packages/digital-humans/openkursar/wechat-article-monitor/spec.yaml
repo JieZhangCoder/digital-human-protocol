@@ -1,0 +1,163 @@
+spec_version: "1"
+name: WeChat Article Monitor
+version: "2.0.0"
+author: openkursar
+description: Monitors WeChat article source pages for new publications and delivers a deduplicated digest of fresh content.
+type: automation
+icon: content
+system_prompt: |-
+  You are a content monitoring assistant. Your job is to check configured article source pages for new publications and produce a deduplicated digest.
+
+  ## Core rules
+  - You MUST use AI Browser to visit all source pages. Do NOT use WebFetch or any other network tool.
+  - Only report articles you can directly observe. Never fabricate titles, links, or publication dates.
+  - If a source is inaccessible (login wall, anti-scrape, timeout), record the failure and continue with the remaining sources.
+
+  ## Step 1 — Parse source URLs
+  Split `source_urls` by newline. Remove blank lines. Process each URL independently.
+
+  ## Step 2 — Fetch article list per source
+  Use AI Browser to open each source URL. Collect visible articles:
+  - Title
+  - Link
+  - Publication date/time (if visible)
+  - Author (if visible)
+
+  ## Step 3 — Deduplicate
+  Normalize each link (strip common tracking parameters).
+  Generate a dedup key: prefer canonical URL; fall back to title + publish_date.
+  Exclude any key already present in `memory.seen_article_keys`.
+
+  ## Step 4 — Filter and rank
+  - Only include articles published within the last `lookback_days` days.
+  - Sort by publication date descending.
+  - Select at most `max_new_articles_per_run` articles.
+
+  ## Step 5 — Generate digest (Markdown)
+  - `brief`: one line per article (title + link)
+  - `detailed`: title + one-sentence summary + link
+  If no new articles found, output "No new articles found this run."
+  Output language follows `output_language` config.
+
+  ## Step 6 — Update memory
+  - Append new dedup keys to `seen_article_keys`.
+  - Set `last_successful_scan_at` to now.
+  - Update `source_health` for each source: `{ status: "ok" | "failed", reason?, last_checked }`.
+  - Write selected articles snapshot to `last_digest_items`.
+
+  ## Constraints
+  - Do not infer article content beyond what is visible on the page.
+  - Do not open individual article pages unless `summary_style` is `detailed` and a summary is needed.
+config_schema:
+  - key: source_urls
+    label: Source URLs
+    type: text
+    required: true
+    placeholder: |-
+      https://example.com/source-a
+      https://example.com/source-b
+    description: One source URL per line
+  - key: max_new_articles_per_run
+    label: Max New Articles
+    type: number
+    required: true
+    default: 10
+    description: Maximum number of new articles to include in a single digest
+  - key: lookback_days
+    label: Lookback Days
+    type: number
+    required: true
+    default: 7
+    description: Only include articles published within the last N days
+  - key: summary_style
+    label: Summary Style
+    type: select
+    required: true
+    default: brief
+    options:
+      - label: Brief (title + link only)
+        value: brief
+      - label: Detailed (title + summary + link)
+        value: detailed
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: article-check
+    source:
+      type: schedule
+      config:
+        every: 12h
+    frequency:
+      default: 12h
+      min: 1h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open article source pages and extract article listings
+memory_schema:
+  seen_article_keys:
+    type: array
+    description: Dedup keys of previously seen articles (canonical URL or title+date) — prevents re-reporting
+  last_successful_scan_at:
+    type: date
+    description: Timestamp of the most recent successful scan
+  source_health:
+    type: object
+    description: Per-source health status (ok/failed) and last failure reason
+  last_digest_items:
+    type: array
+    description: Snapshot of articles included in the last digest
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/wechat-article-monitor
+  category: content
+  tags: [wechat, content, monitor, digest]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 微信文章监控
+    description: 监控多个微信公众号来源页面的新文章发布，过滤重复内容，生成最新内容摘要推送。
+    config_schema:
+      source_urls:
+        label: 来源页面地址
+        description: 每行一个来源 URL
+        placeholder: |-
+          https://example.com/source-a
+          https://example.com/source-b
+      max_new_articles_per_run:
+        label: 单次最大新文章数
+        description: 单次摘要中最多包含的新文章数量
+      lookback_days:
+        label: 回溯天数
+        description: 仅包含过去 N 天内发布的文章
+      summary_style:
+        label: 摘要样式
+        options:
+          brief: 简洁（仅标题 + 链接）
+          detailed: 详细（标题 + 摘要 + 链接）
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

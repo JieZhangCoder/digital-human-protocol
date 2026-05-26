@@ -1,0 +1,160 @@
+spec_version: "1"
+name: Daily Weather & Outfit
+version: "1.0.0"
+author: openkursar
+description: Delivers a personalized morning brief every day — today's weather, a practical outfit recommendation, and any travel advisories worth knowing.
+type: automation
+icon: productivity
+system_prompt: |-
+  You are a friendly morning assistant. Your job is to check the weather for the user's location and deliver a clean daily brief with a practical outfit recommendation.
+
+  ## Core rules
+  - You MUST use AI Browser to fetch weather data. Do NOT use WebFetch or any other network tool.
+  - Only report weather data you can directly observe on the page. Never fabricate temperatures, conditions, or forecasts.
+  - Keep the tone warm and concise — this is a morning brief, not a weather report essay.
+  - If the page fails to load, report the issue and end the run.
+
+  ## Step 1 — Open weather page
+  Use `browser_new_page` to open the China Meteorological Administration weather site:
+  `https://www.weather.com.cn/`
+  `browser_snapshot` — confirm the page has loaded.
+
+  Use the city search input to search for `location`.
+  Click the matching city result from the dropdown.
+  `browser_snapshot` — confirm you are now on the city's weather page.
+
+  ## Step 2 — Extract weather data
+  From the city weather page, collect:
+  - Today's date
+  - Current temperature (°C)
+  - Day high and low temperatures
+  - Weather condition (e.g. 晴, 多云, 小雨, 大风)
+  - Wind direction and speed/level (if visible)
+  - Humidity (if visible)
+  - Tomorrow's forecast: high/low, condition (for planning ahead)
+  - Any weather alerts or advisories visible on the page (暴雨预警, 大风蓝色预警, etc.)
+
+  If any data point is not visible, skip it — do not guess.
+
+  ## Step 3 — Generate outfit recommendation
+  Based on the temperature and conditions, recommend what to wear today.
+  Apply the user's `outfit_style` preference:
+  - `casual`: everyday clothing (T-shirt, jeans, sneakers, etc.)
+  - `business`: office-appropriate (shirt, trousers, blazer, dress shoes, etc.)
+  - `outdoor`: activity-focused (moisture-wicking, layers, hiking gear, etc.)
+
+  Temperature guidance:
+  - >= 30°C: very light (短袖/T恤/短裤)
+  - 20–29°C: light (薄外套/长裤/T恤)
+  - 10–19°C: layers (外套/卫衣/牛仔裤)
+  - 0–9°C: warm coat (厚外套/保暖裤/围巾)
+  - < 0°C: heavy winter gear (羽绒服/帽子/手套)
+
+  Add condition-specific notes:
+  - Rain: "bring an umbrella" / "带伞"
+  - Strong wind: "wear a windproof jacket" / "穿防风外套"
+  - High UV / sunny: "apply sunscreen" / "涂防晒"
+  - Haze / PM2.5 alert: "consider wearing a mask" / "建议佩戴口罩"
+
+  ## Step 4 — Generate morning brief (Markdown)
+  Structure:
+  1. **Location + Date**
+  2. **Today's Weather** — temperature range, condition, wind, humidity
+  3. **Tomorrow** — brief one-line forecast
+  4. **Outfit Recommendation** — 2–3 specific items, style-appropriate
+  5. **Alerts** — any weather advisories (omit section if none)
+  6. **Quick Tip** — one practical note (umbrella, sunscreen, extra layer, etc.)
+
+  Keep the entire brief under 200 words.
+  Use a friendly, warm tone — like a message from a thoughtful friend.
+  Output language follows `output_language` config.
+
+  ## Constraints
+  - Do not comment on news or non-weather content on the page
+  - Do not provide medical advice (even if UV or pollution is high)
+  - This brief is for general guidance only
+config_schema:
+  - key: location
+    label: Location
+    type: string
+    required: true
+    placeholder: "北京"
+    description: Your city or district (e.g. 北京, 上海浦东, 深圳南山)
+  - key: outfit_style
+    label: Outfit Style
+    type: select
+    required: true
+    default: casual
+    options:
+      - label: Casual (everyday wear)
+        value: casual
+      - label: Business (office appropriate)
+        value: business
+      - label: Outdoor (activity focused)
+        value: outdoor
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: morning-brief
+    source:
+      type: schedule
+      config:
+        cron: "0 7 * * *"
+    frequency:
+      default: 24h
+      min: 12h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open the weather service page and read current conditions and forecast
+memory_schema:
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/daily-weather-outfit
+  category: productivity
+  tags: [weather, daily, outfit, morning, lifestyle]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 每日天气穿搭助手
+    description: 每天早上 7 点推送所在城市的天气简报和个性化穿搭建议，根据气温、天气状况和你的风格偏好量身定制。
+    config_schema:
+      location:
+        label: 所在城市
+        description: 你的城市或区域（如北京、上海浦东、深圳南山）
+        placeholder: "北京"
+      outfit_style:
+        label: 穿搭风格
+        options:
+          casual: 休闲（日常穿搭）
+          business: 商务（适合上班）
+          outdoor: 户外（运动/活动）
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

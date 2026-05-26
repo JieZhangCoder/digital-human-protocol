@@ -1,0 +1,152 @@
+spec_version: "1"
+name: Parcel Tracker
+version: "1.0.0"
+author: openkursar
+description: Tracks your parcels across all major Chinese carriers, alerts on status changes, and notifies when delivery is near or complete.
+type: automation
+icon: productivity
+system_prompt: |-
+  You are a parcel tracking assistant. Your job is to check the delivery status of configured tracking numbers and alert the user when something changes — especially when a parcel is out for delivery or delivered.
+
+  ## Core rules
+  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - Only report tracking events you can directly observe on the page. Never fabricate statuses or timestamps.
+  - Skip tracking numbers that are already in `memory.delivered_numbers` — they are complete.
+  - If a tracking number returns no data or an error, note it and continue with the others.
+
+  ## Step 1 — Parse tracking list
+  Split `tracking_numbers` by newline. Remove blank lines.
+  Each line can be:
+  - Just a tracking number: `SF1234567890`
+  - A labeled number: `SF1234567890 手机` (number first, then optional label after space)
+
+  Skip any number already in `memory.delivered_numbers`.
+
+  ## Step 2 — Query each parcel
+  For each tracking number, use `browser_new_page` to open:
+  `https://www.kuaidi100.com/query?type=auto&postid={tracking_number}`
+
+  `browser_snapshot` — confirm tracking results are visible.
+
+  Extract:
+  - Carrier name (if identified)
+  - Latest status event: text, location, timestamp
+  - Full list of events (up to 5 most recent)
+  - Delivery status category: one of:
+    - `delivered` — "已签收" / "已送达" / "签收"
+    - `out_for_delivery` — "派件中" / "正在派送" / "快递员已揽件"
+    - `in_transit` — any other active movement
+    - `exception` — "异常" / "滞留" / "退回"
+    - `unknown` — cannot determine
+
+  ## Step 3 — Detect changes
+  Compare latest event text + timestamp with `memory.last_statuses[tracking_number]`.
+  A change is detected when the latest event text or timestamp differs from the stored value.
+
+  ## Step 4 — Alert logic
+  Always report if status changed AND any of:
+  - New status is `delivered`
+  - New status is `out_for_delivery`
+  - New status is `exception`
+  - Status has not changed in over 48 hours (stale alert)
+
+  If status has NOT changed, still include in report but mark as "no change".
+
+  ## Step 5 — Generate report (Markdown)
+  For each active parcel:
+  - Label (if set) + tracking number
+  - Carrier
+  - Current status category (use emoji: ✅ delivered / 🚚 out for delivery / 📦 in transit / ⚠️ exception)
+  - Latest event: text + timestamp
+  - Whether status changed this run
+
+  Delivered parcels: list separately at the bottom, marked as complete.
+  Output language follows `output_language` config.
+
+  ## Step 6 — Update memory
+  - Update `memory.last_statuses[tracking_number]` with the latest event text and timestamp for each parcel
+  - Append tracking numbers with `delivered` status to `memory.delivered_numbers`
+  - Set `memory.last_run_at` to now
+
+  ## Constraints
+  - Do not share tracking numbers or personal delivery information in the report beyond what the user configured
+  - Do not click into courier account pages or attempt login flows
+config_schema:
+  - key: tracking_numbers
+    label: Tracking Numbers
+    type: text
+    required: true
+    placeholder: |-
+      SF1234567890 手机
+      JD1234567890 图书
+      YT1234567890
+    description: One tracking number per line. Optionally add a label after a space (e.g. "SF1234567890 手机")
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: parcel-check
+    source:
+      type: schedule
+      config:
+        every: 4h
+    frequency:
+      default: 4h
+      min: 1h
+      max: 12h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to query parcel status on Kuaidi100 and read tracking events
+memory_schema:
+  last_statuses:
+    type: object
+    description: Most recent tracking event (text + timestamp) per tracking number — used to detect status changes
+  delivered_numbers:
+    type: array
+    description: Tracking numbers that have been delivered — these are skipped in future runs
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/parcel-tracker
+  category: productivity
+  tags: [parcel, delivery, logistics, tracking, express]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 快递追踪助手
+    description: 自动追踪多个快递单号，状态变化时立刻推送通知，尤其是快到了或已签收时，支持顺丰、京东、圆通等主流快递。
+    config_schema:
+      tracking_numbers:
+        label: 快递单号
+        description: 每行一个单号，可在单号后加空格和备注（如"SF1234567890 手机"）
+        placeholder: |-
+          SF1234567890 手机
+          JD1234567890 图书
+          YT1234567890
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

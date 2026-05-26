@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-05-23T06:54:43.123Z",
+  "generated_at": "2026-05-26T09:33:22.544Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
@@ -16,7 +16,7 @@
       "checksum": "sha256:fdaff0f4b33cfe89b2d49bdfbc954469d71b3eb1be72fd56b7b1096d10f4bb07",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.651Z"
+      "updated_at": "2026-05-26T07:21:22.338Z"
     },
     {
       "slug": "openkursar/bili-reply",
@@ -31,7 +31,7 @@
       "checksum": "sha256:c21e347a144aeac1e7e5d96aa3e1d06acc185336c6d17014ea41950683cd6ad5",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.655Z"
+      "updated_at": "2026-05-26T07:21:22.338Z"
     },
     {
       "slug": "openkursar/meituan-checkout-preview",
@@ -46,7 +46,7 @@
       "checksum": "sha256:8393aab85a86d52da4ec256d3040e711e608c0dce18bf690c7f92880e168a364",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.657Z"
+      "updated_at": "2026-05-26T07:21:22.339Z"
     },
     {
       "slug": "openkursar/meituan-get-addresses",
@@ -61,7 +61,7 @@
       "checksum": "sha256:58b17e6526127fe12ab2d52ae9d3ab355f48a9c5afde5f78e9ab691c980a5fd0",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.662Z"
+      "updated_at": "2026-05-26T07:21:22.339Z"
     },
     {
       "slug": "openkursar/meituan-get-cart",
@@ -76,7 +76,7 @@
       "checksum": "sha256:3d0eb662fc5eab76704639003b50aae4ea7871c6dffed97842d1cc8b4c9922fb",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.666Z"
+      "updated_at": "2026-05-26T07:21:22.340Z"
     },
     {
       "slug": "openkursar/meituan-list-shops",
@@ -91,7 +91,7 @@
       "checksum": "sha256:c7462c6e360f83dd88e08ed0dcd02784f4d6b8c2a3f29deb5c693dbfab8995fc",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.670Z"
+      "updated_at": "2026-05-26T07:21:22.340Z"
     },
     {
       "slug": "openkursar/meituan-login-check",
@@ -106,7 +106,7 @@
       "checksum": "sha256:239b8e513e6ca4eea8bef2706fd9fd0151d2c3dbc2b66bbb01fd9bc1f58a0eb2",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.673Z"
+      "updated_at": "2026-05-26T07:21:22.341Z"
     },
     {
       "slug": "openkursar/meituan-modify-cart",
@@ -121,7 +121,7 @@
       "checksum": "sha256:b55535c6cdae0e1b5a9f6d08454849b26f2cc2b1d57eafc921ffe8c8d76e10c8",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.677Z"
+      "updated_at": "2026-05-26T07:21:22.341Z"
     },
     {
       "slug": "openkursar/meituan-order-status",
@@ -136,7 +136,7 @@
       "checksum": "sha256:611bfa1378139d02332b5e3e3b90fc2a81fdf54e21f6aa1071a28b6c217d16a4",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.681Z"
+      "updated_at": "2026-05-26T07:21:22.341Z"
     },
     {
       "slug": "openkursar/meituan-shop-menu",
@@ -151,7 +151,7 @@
       "checksum": "sha256:22dc5db86fc5b55199a7d53686f156d5ef38cb7b6749251dff1a89f8a8ba1c35",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.684Z"
+      "updated_at": "2026-05-26T07:21:22.342Z"
     },
     {
       "slug": "openkursar/meituan-submit-order",
@@ -166,7 +166,7 @@
       "checksum": "sha256:d048f5b44a539fb2082314d6c573e67aafdf94c24faed04d20986fcd72869555",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.687Z"
+      "updated_at": "2026-05-26T07:21:22.342Z"
     },
     {
       "slug": "openkursar/x-post",
@@ -181,7 +181,7 @@
       "checksum": "sha256:95772928ebf5723ee1eac0ea551a85fa63a39a2d4927ce74fb7f5391dc8fb0d2",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.691Z"
+      "updated_at": "2026-05-26T07:21:22.343Z"
     },
     {
       "slug": "openkursar/x-read-profile",
@@ -196,7 +196,7 @@
       "checksum": "sha256:4cd26c6273dd4a381a168350ee5dca0ad6d11a4a7967579742b926bad2b5694a",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.693Z"
+      "updated_at": "2026-05-26T07:21:22.343Z"
     },
     {
       "slug": "openkursar/x-read-tweet",
@@ -211,7 +211,7 @@
       "checksum": "sha256:506158ee7a41776f191bfff046ecb8f133bd95843f6957cb56fff60d689d4973",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.694Z"
+      "updated_at": "2026-05-26T07:21:22.344Z"
     },
     {
       "slug": "openkursar/x-reply",
@@ -226,7 +226,7 @@
       "checksum": "sha256:41eec4c06f027fac3e1e038852fc69109b0a9c52d91b2a4ad998f9ead917788c",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.696Z"
+      "updated_at": "2026-05-26T07:21:22.345Z"
     },
     {
       "slug": "openkursar/x-search",
@@ -241,7 +241,7 @@
       "checksum": "sha256:49adee32246b3dd3f43d99a36407b11eaf8bcaa6bdaef2440f87275c511681aa",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.697Z"
+      "updated_at": "2026-05-26T07:21:22.345Z"
     },
     {
       "slug": "openkursar/xhs-comment",
@@ -256,7 +256,7 @@
       "checksum": "sha256:38a462f0f2d66aafda5c0908d0ce5f272bdf676d3a367bccd6de6b0c40dc0d00",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.699Z"
+      "updated_at": "2026-05-26T07:21:22.346Z"
     },
     {
       "slug": "openkursar/xhs-search",
@@ -271,7 +271,7 @@
       "checksum": "sha256:11b2e31386bec8ed148b2c511d690b774d379e7b4801a0a803557dc09b5777af",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.701Z"
+      "updated_at": "2026-05-26T07:21:22.346Z"
     },
     {
       "slug": "openkursar/zhihu-creator-invited",
@@ -286,7 +286,7 @@
       "checksum": "sha256:6340adf28cae4a50609a9dbae9f552b83d4d3736b49b93c865e6a88292bb42c2",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.705Z"
+      "updated_at": "2026-05-26T07:21:22.347Z"
     },
     {
       "slug": "openkursar/zhihu-creator-search",
@@ -301,7 +301,7 @@
       "checksum": "sha256:0327602f41243e60cb052b97ac6498ec1e6529f7949211cc2f27f14b010d6631",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.707Z"
+      "updated_at": "2026-05-26T07:21:22.347Z"
     },
     {
       "slug": "openkursar/zhihu-fill-editor",
@@ -316,7 +316,7 @@
       "checksum": "sha256:e669c4266a30ec60c49e443a7370adcf94cd8b3ed57457ee34d48d815a31d481",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.710Z"
+      "updated_at": "2026-05-26T07:21:22.348Z"
     },
     {
       "slug": "openkursar/zhihu-metrics-answers",
@@ -331,7 +331,7 @@
       "checksum": "sha256:842f5d71894ccf3c36ade97591bfeaf9a074c61d9c6ec1d6292eb88a2df5cc46",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.712Z"
+      "updated_at": "2026-05-26T07:21:22.348Z"
     },
     {
       "slug": "openkursar/zhihu-metrics-overview",
@@ -346,7 +346,7 @@
       "checksum": "sha256:87d0add2657ec690e20fdf5864d0e2a2f23adf57085f0725b9e0c35a5cbe1a55",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.714Z"
+      "updated_at": "2026-05-26T07:21:22.349Z"
     },
     {
       "slug": "openkursar/zhihu-open-editor",
@@ -361,7 +361,7 @@
       "checksum": "sha256:d7eddc217a684db9a342becdf71a26df3740623b9eadce046b6f4a5e7790fcd7",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.716Z"
+      "updated_at": "2026-05-26T07:21:22.350Z"
     },
     {
       "slug": "openkursar/zhihu-publish-answer",
@@ -376,7 +376,7 @@
       "checksum": "sha256:91d1f7fa53307e19b7a8d95a043a88f848f6503efea4999f2eaa0d0fdefa3ee8",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.718Z"
+      "updated_at": "2026-05-26T07:21:22.350Z"
     },
     {
       "slug": "openkursar/zhihu-publish-pin",
@@ -391,7 +391,7 @@
       "checksum": "sha256:4d5d36562c7e68b119f88b7f05817e8a5141984e8884483dae65d91427937c05",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.720Z"
+      "updated_at": "2026-05-26T07:21:22.351Z"
     },
     {
       "slug": "openkursar/zhihu-question-read",
@@ -406,7 +406,7 @@
       "checksum": "sha256:ad3a3975d84239c549dcbc50c2ad43fabdd82833d30d954db887594f5c3610ef",
       "category": "other",
       "tags": [],
-      "updated_at": "2026-05-23T06:54:32.723Z"
+      "updated_at": "2026-05-26T07:21:22.352Z"
     }
   ]
 }

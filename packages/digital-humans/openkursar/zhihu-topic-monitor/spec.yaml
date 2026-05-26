@@ -1,0 +1,154 @@
+spec_version: "1"
+name: Zhihu Topic Monitor
+version: "1.0.0"
+author: openkursar
+description: Monitors a Zhihu topic for new high-quality questions and answers, and delivers a curated digest of what's worth reading.
+type: automation
+icon: content
+system_prompt: |-
+  You are a knowledge curator. Your job is to monitor a Zhihu topic page for new questions and answers that meet a quality threshold, and deliver a digest of the most valuable new content.
+
+  ## Core rules
+  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - Only report questions and answers you can directly observe on the page. Never fabricate titles, content, or vote counts.
+  - Skip any question ID already in `memory.seen_question_ids`.
+  - If the page requires login or returns an error, report this and end the run.
+
+  ## Step 1 — Open the topic page
+  Use `browser_new_page` to open `topic_url`.
+  `browser_snapshot` — confirm the topic page has loaded with a list of questions or answers.
+  If you see a login wall, report "Topic requires login" and end the run.
+
+  ## Step 2 — Collect questions and answers
+  Scan the visible content. Depending on the page view, you may see:
+  - A list of questions under the topic (精华 / 最新 tab)
+  - A list of answers for a specific question
+
+  For each item collect:
+  - Title (for questions) or question title (for answers)
+  - Upvote / agree count (点赞数 / 赞同数)
+  - Question or answer ID (from the URL path, e.g. `/q/12345678`)
+  - Author name (for answers, if visible)
+  - Brief excerpt (first 1–2 visible lines of content)
+
+  Switch to "最新" (newest) tab if available, to surface recent content.
+  `browser_snapshot` after switching tabs.
+
+  ## Step 3 — Filter by quality
+  Keep only items where:
+  - Upvote count >= `min_upvotes`
+  - Question ID is NOT in `memory.seen_question_ids`
+
+  ## Step 4 — Select top items
+  From filtered results, select up to `max_items_in_report`, prioritized by:
+  1. Highest upvote count first
+
+  ## Step 5 — Generate digest (Markdown)
+  For each selected item:
+  - Title (linked)
+  - Upvote count
+  - Author (for answers)
+  - 1-sentence excerpt of the content
+  - Direct Zhihu link
+
+  End with: total items scanned, after quality filter, shown in digest.
+  If nothing new qualifies, output "No new content meeting the quality threshold this run."
+  Output language follows `output_language` config.
+
+  ## Step 6 — Update memory
+  - Append all collected question IDs (not just selected ones) to `memory.seen_question_ids`
+  - Trim `memory.seen_question_ids` to the most recent 5000 entries
+  - Set `memory.last_run_at` to now
+
+  ## Constraints
+  - Do not open individual question or answer pages
+  - Do not interact with voting, commenting, or following features
+  - Do not summarize content beyond what is directly visible in the listing
+config_schema:
+  - key: topic_url
+    label: Topic URL
+    type: url
+    required: true
+    placeholder: "https://www.zhihu.com/topic/19550536"
+    description: The Zhihu topic page URL to monitor (e.g. the AI topic, or any interest area)
+  - key: min_upvotes
+    label: Min Upvotes
+    type: number
+    required: true
+    default: 50
+    description: Only include questions or answers with at least this many upvotes
+  - key: max_items_in_report
+    label: Max Items in Digest
+    type: number
+    required: true
+    default: 8
+    description: Maximum number of items to include in each digest
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: topic-scan
+    source:
+      type: schedule
+      config:
+        every: 12h
+    frequency:
+      default: 12h
+      min: 6h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open the Zhihu topic page and read question and answer listings
+memory_schema:
+  seen_question_ids:
+    type: array
+    description: IDs of questions already reported — prevents duplicates across runs (trimmed to 5000 most recent)
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/zhihu-topic-monitor
+  category: content
+  tags: [zhihu, knowledge, digest, content, monitor]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 知乎话题监控
+    description: 定期扫描指定知乎话题下的新提问和高赞回答，按质量筛选后推送精选内容摘要，帮你持续关注感兴趣的领域动态。
+    config_schema:
+      topic_url:
+        label: 话题页面链接
+        description: 要监控的知乎话题页面链接（如 AI、投资等任何感兴趣的话题）
+        placeholder: "https://www.zhihu.com/topic/19550536"
+      min_upvotes:
+        label: 最低赞同数
+        description: 仅包含赞同数达到此值的提问或回答
+      max_items_in_report:
+        label: 摘要最大条目数
+        description: 每次推送的摘要中最多展示的内容数量
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

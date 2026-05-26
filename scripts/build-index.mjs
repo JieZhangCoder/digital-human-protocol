@@ -299,39 +299,6 @@ function discoverBundles(repoRoot, packagesRoot) {
     if (!typeEntry.isDirectory()) continue;
 
     const typeDir = join(packagesRoot, typeEntry.name);
-
-    // Skills get a 3-level walk: packages/skills/<author>/<id>/spec.yaml.
-    // This lets standalone skills use scoped slugs ("author/skill-id") so the
-    // registry can host independent skill contributions per DHP v2 §5/§6.
-    if (typeEntry.name === "skills") {
-      const authors = readdirSync(typeDir, { withFileTypes: true });
-      for (const authorEntry of authors) {
-        if (!authorEntry.isDirectory()) continue;
-        const authorDir = join(typeDir, authorEntry.name);
-        const skillEntries = readdirSync(authorDir, { withFileTypes: true });
-
-        for (const skillEntry of skillEntries) {
-          const skillPath = join(authorDir, skillEntry.name);
-          if (skillEntry.isFile() && skillEntry.name.endsWith(".yaml")) {
-            const rel = toPosixPath(relative(repoRoot, skillPath));
-            throw new Error(
-              `Legacy single-file skill detected at ${rel}. ` +
-                `Use bundle directory format: packages/skills/<author>/<slug>/spec.yaml`
-            );
-          }
-          if (!skillEntry.isDirectory()) continue;
-          const specPath = join(skillPath, "spec.yaml");
-          if (!existsSync(specPath)) continue;
-          results.push({
-            typeDirName: typeEntry.name,
-            bundleDir: skillPath,
-            specPath,
-          });
-        }
-      }
-      continue;
-    }
-
     const children = readdirSync(typeDir, { withFileTypes: true });
 
     for (const child of children) {
@@ -343,19 +310,31 @@ function discoverBundles(repoRoot, packagesRoot) {
           `Legacy single-file package detected at ${rel}. Use bundle directory format: packages/<type>/<slug>/spec.yaml`
         );
       }
-
       if (!child.isDirectory()) continue;
 
-      const specPath = join(childPath, "spec.yaml");
-      if (!existsSync(specPath)) {
+      // Check for flat bundle: packages/<type>/<slug>/spec.yaml
+      const flatSpec = join(childPath, "spec.yaml");
+      if (existsSync(flatSpec)) {
+        results.push({ typeDirName: typeEntry.name, bundleDir: childPath, specPath: flatSpec });
         continue;
       }
 
-      results.push({
-        typeDirName: typeEntry.name,
-        bundleDir: childPath,
-        specPath,
-      });
+      // Check for scoped bundles: packages/<type>/<author>/<id>/spec.yaml
+      const subEntries = readdirSync(childPath, { withFileTypes: true });
+      for (const sub of subEntries) {
+        const subPath = join(childPath, sub.name);
+        if (sub.isFile() && sub.name.endsWith(".yaml")) {
+          const rel = toPosixPath(relative(repoRoot, subPath));
+          throw new Error(
+            `Legacy single-file package detected at ${rel}. ` +
+              `Use bundle directory format: packages/<type>/<author>/<slug>/spec.yaml`
+          );
+        }
+        if (!sub.isDirectory()) continue;
+        const scopedSpec = join(subPath, "spec.yaml");
+        if (!existsSync(scopedSpec)) continue;
+        results.push({ typeDirName: typeEntry.name, bundleDir: subPath, specPath: scopedSpec });
+      }
     }
   }
 
@@ -392,12 +371,12 @@ function buildIndex(repoRoot, source) {
 
     const bundleRelPath = toPosixPath(relative(repoRoot, bundleDir));
 
-    // For unscoped slugs the directory basename is the slug.
-    // For scoped slugs (skills only) the slug is "<author>/<id>" and the
-    // path under packages/skills/ encodes the same two segments.
+    // Derive slug from directory structure. For scoped bundles
+    // (packages/<type>/<author>/<id>/), the slug is "<author>/<id>".
+    // For flat bundles (packages/<type>/<slug>/), the slug is the directory name.
     const dirParts = bundleRelPath.split("/");
-    const isSkillsTree = typeDirName === "skills";
-    const slugFromDir = isSkillsTree && dirParts.length >= 4
+    const depth = dirParts.length; // e.g. "packages/digital-humans/openkursar/hn-daily" = 4
+    const slugFromDir = depth >= 4
       ? `${dirParts[dirParts.length - 2]}/${dirParts[dirParts.length - 1]}`
       : basename(bundleDir);
     const store = spec.store && typeof spec.store === "object" ? spec.store : {};
@@ -407,14 +386,6 @@ function buildIndex(repoRoot, source) {
       throw new Error(
         `Invalid slug "${slug}" in ${specRelPath}. ` +
           `Expected unscoped (e.g. "hn-daily") or scoped "<author>/<id>" (e.g. "openkursar/xhs-search").`
-      );
-    }
-
-    // Scoped slugs are only legal under packages/skills/<author>/<id>/.
-    // Reject mixing schemes (e.g. a scoped digital human slug).
-    if (isScopedSlug(slug) && !isSkillsTree) {
-      throw new Error(
-        `Scoped slug "${slug}" in ${specRelPath} is only valid for type=skill under packages/skills/`
       );
     }
 

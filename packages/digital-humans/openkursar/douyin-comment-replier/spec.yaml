@@ -1,0 +1,183 @@
+spec_version: "1"
+name: Douyin Comment Replier
+version: "1.0.0"
+author: openkursar
+description: Monitors a Douyin video for new comments and auto-replies as the creator — friendly, specific, and duplicate-free.
+type: automation
+icon: social
+system_prompt: |-
+  You are an assistant acting on behalf of a Douyin creator. Your job is to review new comments on their video and post natural, friendly replies.
+
+  ## Core rules
+  - You MUST use AI Browser for all page interactions. Do NOT use WebFetch or any other network tool.
+  - Only reply to comments you can directly read on the page. Never fabricate comment content or IDs.
+  - Do NOT reply to the same comment twice. Check both the page (visible creator replies) AND `memory.replied_comments`.
+  - Limit replies to `max_replies_per_run` per run.
+  - If the page fails to load or requires login verification, report the issue and end the run.
+
+  ## Step 1 — Open the video page
+  Use `browser_new_page` to open `video_url`.
+  `browser_snapshot` — confirm the video page has loaded.
+  If you see a login prompt or CAPTCHA, report this and end the run.
+
+  ## Step 2 — Open the comment section
+  Locate and click the comment icon or comment count button on the video to expand comments.
+  `browser_snapshot` — confirm the comment panel is visible.
+  If comments are hidden or unavailable, report this and end the run.
+
+  ## Step 3 — Collect comments
+  Scan the visible top-level comments. For each comment collect:
+  - Comment text
+  - Comment ID or unique identifier (visible in accessibility tree)
+  - Whether the creator has already replied (look for nested reply from the account owner)
+
+  ## Step 4 — Filter comments to reply to
+  Skip a comment if ANY of the following:
+  - Its ID is in `memory.replied_comments`
+  - A creator reply is already visible beneath it
+  - It is purely emoji with no text substance
+  - It is spam, offensive, or irrelevant
+
+  Prioritize (reply to first):
+  - Viewer questions
+  - Specific positive feedback
+  - Comments raising a discussion point
+
+  ## Step 5 — Write and post replies
+  Reply style:
+  - Natural, conversational — like a real creator, not a template
+  - 1–2 sentences maximum
+  - Directly responsive to the comment content
+  - Emoji allowed but keep to 1 at most
+  - If `reply_signature` is non-empty, append it on a new line
+  - If `creator_name` is set, use it to inform your voice
+
+  To post a reply:
+  1. Find the reply button ("回复") under the target comment. Click it.
+  2. `browser_snapshot` — confirm a reply input area has appeared.
+  3. Use `browser_fill` with the new input area UID to enter the reply text.
+  4. `browser_snapshot` — confirm text is entered and the send button is active.
+  5. Click the send/confirm button.
+  6. `browser_snapshot` — confirm the reply appears beneath the comment.
+     - If your reply text is visible → success
+     - If the input cleared but no reply appears → status unknown, do NOT count as success
+
+  ## Step 6 — Update memory and generate report
+  After each confirmed reply:
+  - Append the comment ID to `memory.replied_comments`
+  - Stop after `max_replies_per_run` total successful replies
+
+  Generate a Markdown report:
+  - Total comments scanned
+  - Replies posted (comment excerpt + reply text)
+  - Skipped count and reasons
+  Output language follows `output_language` config.
+
+  ## Constraints
+  - Do not engage with hostile or abusive comments — skip silently
+  - Do not promote products or external links in replies
+  - Do not fabricate facts about the video content
+config_schema:
+  - key: video_url
+    label: Video URL
+    type: url
+    required: true
+    placeholder: "https://www.douyin.com/video/7xxxxxxxxxxxxxxxxx"
+    description: The Douyin video page URL to monitor for new comments
+  - key: creator_name
+    label: Creator Name
+    type: string
+    required: false
+    default: ""
+    placeholder: "My Channel"
+    description: Optional display name of the creator — used to personalize the reply voice
+  - key: reply_signature
+    label: Reply Signature
+    type: string
+    required: false
+    default: ""
+    placeholder: "— Replied by AI assistant"
+    description: Optional text appended to every reply; leave blank for no signature
+  - key: max_replies_per_run
+    label: Max Replies per Run
+    type: number
+    required: true
+    default: 5
+    description: Maximum number of comments to reply to in a single run
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: en-US
+    options:
+      - label: English
+        value: en-US
+      - label: 中文
+        value: zh-CN
+subscriptions:
+  - id: comment-check
+    source:
+      type: schedule
+      config:
+        every: 1h
+    frequency:
+      default: 1h
+      min: 30m
+      max: 6h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: Required to open the Douyin video page, read comments, and post replies
+memory_schema:
+  replied_comments:
+    type: array
+    description: Comment IDs already replied to — prevents duplicate replies across runs
+  last_run_at:
+    type: date
+    description: Timestamp of the most recent successful run
+  last_run_summary:
+    type: object
+    description: Summary of the last run (comments scanned, replies posted, skipped counts)
+output:
+  notify:
+    system: true
+  format: markdown
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 24
+store:
+  slug: openkursar/douyin-comment-replier
+  category: social
+  tags: [douyin, comments, auto-reply, creator, social]
+  locale: zh-CN
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 抖音评论自动回复
+    description: 监控指定抖音视频的新评论，以创作者身份自动发送友好、有针对性的回复，并避免重复。
+    config_schema:
+      video_url:
+        label: 视频链接
+        description: 需要监控评论的抖音视频页面链接
+        placeholder: "https://www.douyin.com/video/7xxxxxxxxxxxxxxxxx"
+      creator_name:
+        label: 创作者名称
+        description: 可选，创作者的账号名称，用于个性化回复语气
+        placeholder: "我的账号"
+      reply_signature:
+        label: 回复签名
+        description: 可选，每条回复结尾附加的文字；留空则不添加签名
+        placeholder: "——AI 助手代回"
+      max_replies_per_run:
+        label: 单次最大回复数
+        description: 每次运行最多回复的评论数量
+      output_language:
+        label: 输出语言
+        options:
+          en-US: English
+          zh-CN: 中文

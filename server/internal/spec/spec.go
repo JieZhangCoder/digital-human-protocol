@@ -187,8 +187,13 @@ type StoreMetadata struct {
 	Meta          map[string]any `yaml:"meta,omitempty"`
 }
 
-// scopedSlugRe matches "author/id" or plain "id" (legacy).
+// scopedSlugRe matches "author/id" (required format for all new publishes).
+// Legacy flat slugs ("hn-daily") are accepted by the regex for read-path compat
+// but the publish handler enforces scoped format separately.
 var scopedSlugRe = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)?$`)
+
+// scopedOnlyRe strictly matches "author/id" format (exactly one slash).
+var scopedOnlyRe = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
 
 // semverLooseRe matches loose versions: "1.0", "1.0.0", "0.1-beta", etc.
 var semverLooseRe = regexp.MustCompile(`^[0-9]+(?:\.[0-9]+){0,2}(?:[-+][0-9A-Za-z.\-]+)?$`)
@@ -315,6 +320,45 @@ func Validate(s *Spec) error {
 }
 
 func (v *ValidationError) add(msg string) { v.Issues = append(v.Issues, msg) }
+
+// IsScopedSlug returns true when slug is in "author/id" format.
+func IsScopedSlug(slug string) bool {
+	return scopedOnlyRe.MatchString(slug)
+}
+
+// ValidatePublish performs additional checks required for publishing to
+// a registry. It enforces that the slug is scoped ("author/id") and that
+// the slug prefix matches the author field.
+func ValidatePublish(s *Spec) error {
+	v := &ValidationError{}
+
+	slug := s.Slug()
+	if slug == "" {
+		v.add("store.slug is required for publishing (format: author/app-id)")
+		if len(v.Issues) > 0 {
+			return v
+		}
+		return nil
+	}
+
+	if !IsScopedSlug(slug) {
+		v.add(fmt.Sprintf("store.slug %q must be scoped as \"author/app-id\" (e.g. \"fly/my-app\")", slug))
+	} else {
+		prefix := slug[:strings.Index(slug, "/")]
+		authorSlug := DeriveSlug(s.Author)
+		if prefix != authorSlug {
+			v.add(fmt.Sprintf(
+				"store.slug prefix %q does not match author %q (expected %q/...)",
+				prefix, s.Author, authorSlug,
+			))
+		}
+	}
+
+	if len(v.Issues) > 0 {
+		return v
+	}
+	return nil
+}
 
 // Slug returns the registry slug. If store.slug is unset, derives one from
 // name so clients are not forced to populate publish-only metadata for specs

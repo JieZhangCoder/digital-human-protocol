@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "generated_at": "2026-05-23T06:54:43.123Z",
+  "generated_at": "2026-05-26T09:33:22.544Z",
   "source": "https://openkursar.github.io/digital-human-protocol",
   "apps": [
     {
-      "slug": "ai-daily-news",
+      "slug": "openkursar/ai-daily-news",
       "name": "AI 每日新闻播报",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "每天自动搜集 AI/大模型/Agent 领域最新新闻，筛选高价值资讯后推送精选播报，帮你零成本追踪行业动态。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/ai-daily-news",
-      "size_bytes": 5674,
-      "checksum": "sha256:6fa3ce0b70a84db9a44a6cd9d4976cda6f17590ce496bbf5846936ff2f3ec90b",
+      "path": "packages/digital-humans/openkursar/ai-daily-news",
+      "size_bytes": 5685,
+      "checksum": "sha256:49dec47ea10195313adf6464a7a56ca5cebc5a49d7a1fd1f3ed59d91047527ee",
       "category": "content",
       "tags": [
         "AI",
@@ -28,7 +28,7 @@
       "icon": "news",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-04-04T09:01:03.678Z",
+      "updated_at": "2026-05-26T09:33:10.427Z",
       "i18n": {
         "en-US": {
           "name": "AI Daily News Digest",
@@ -37,16 +37,16 @@
       }
     },
     {
-      "slug": "bilibili-comment-replier",
+      "slug": "openkursar/bilibili-comment-replier",
       "name": "B站评论自动回复",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "监控 B 站消息中心的评论通知，以 UP 主身份对新评论发送有针对性的回复，避免重复。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/bilibili-comment-replier",
-      "size_bytes": 7877,
-      "checksum": "sha256:30add67e9fc54bb8a983e4f0780ff9e0ed7fba47849760078a519fc56762331e",
+      "path": "packages/digital-humans/openkursar/bilibili-comment-replier",
+      "size_bytes": 7888,
+      "checksum": "sha256:5a1eafcc2a586c329ded31408a72896e664b4cc681162d8a3cbd3ff589752963",
       "category": "social",
       "tags": [
         "bilibili",
@@ -75,7 +75,7 @@
           "id": "openkursar/bili-reply"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.656Z",
+      "updated_at": "2026-05-26T09:33:10.436Z",
       "i18n": {
         "en-US": {
           "name": "Bilibili Comment Replier",
@@ -87,16 +87,16 @@
       }
     },
     {
-      "slug": "boss-job-monitor",
+      "slug": "openkursar/boss-job-monitor",
       "name": "Boss Job Monitor",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors Boss Zhipin daily for new job listings matching your keywords and city, ranks them by fit, and delivers a clean digest.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/boss-job-monitor",
-      "size_bytes": 6597,
-      "checksum": "sha256:0461f8681f0ebdbe80a5fef1b51d1c212e6d26c6bbd499e49a14d3b022cc65e9",
+      "path": "packages/digital-humans/openkursar/boss-job-monitor",
+      "size_bytes": 6608,
+      "checksum": "sha256:b18da7948185fd6d8ca56559f228b527575aa838cadfd6e6831a06a65483fb04",
       "category": "productivity",
       "tags": [
         "jobs",
@@ -111,7 +111,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T10:50:02.035Z",
+      "updated_at": "2026-05-26T09:33:10.443Z",
       "i18n": {
         "zh-CN": {
           "name": "Boss直聘职位监控",
@@ -120,16 +120,16 @@
       }
     },
     {
-      "slug": "changelog-generator",
+      "slug": "openkursar/changelog-generator",
       "name": "Changelog Generator",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Listens for pushes to your main branch via webhook, parses commit messages following Conventional Commits, and generates a formatted Keep-a-Changelog entry automatically.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/changelog-generator",
-      "size_bytes": 10172,
-      "checksum": "sha256:b1483494dc57e9a78f8b258bdcd43b51a24a744f15b6eaa18cd280f1a21a0f18",
+      "path": "packages/digital-humans/openkursar/changelog-generator",
+      "size_bytes": 10183,
+      "checksum": "sha256:899e249dbe5a429b33a716a0e705baefe3dc74181bff132208bc4b76f0b9c7ee",
       "category": "dev-tools",
       "tags": [
         "changelog",
@@ -142,7 +142,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-24T11:53:22.966Z",
+      "updated_at": "2026-05-26T09:33:10.451Z",
       "i18n": {
         "zh-CN": {
           "name": "Changelog 自动生成器",
@@ -151,16 +151,16 @@
       }
     },
     {
-      "slug": "cicd-failure-analyst",
+      "slug": "openkursar/cicd-failure-analyst",
       "name": "CI Failure Analyst",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Receives GitHub Actions failure notifications via webhook, fetches the build logs, diagnoses the root cause, and delivers a fix direction — before you even open the console.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/cicd-failure-analyst",
-      "size_bytes": 10056,
-      "checksum": "sha256:07def387c5f3b76d81d9ac30fe1863937619946afaf504468b401e028f113a31",
+      "path": "packages/digital-humans/openkursar/cicd-failure-analyst",
+      "size_bytes": 10067,
+      "checksum": "sha256:edbbe5a8535d098b3b50b9e62e30703732576afe6e65987f0e232f5ba52d1512",
       "category": "dev-tools",
       "tags": [
         "ci",
@@ -177,7 +177,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T11:47:34.032Z",
+      "updated_at": "2026-05-26T09:33:10.459Z",
       "i18n": {
         "zh-CN": {
           "name": "CI 构建失败分析师",
@@ -186,16 +186,16 @@
       }
     },
     {
-      "slug": "cn-stock-daily",
+      "slug": "openkursar/cn-stock-daily",
       "name": "CN Stock Daily",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Delivers a concise daily digest of your A-share or HK-share watchlist after market close — price changes, volume highlights, and key news.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/cn-stock-daily",
-      "size_bytes": 5239,
-      "checksum": "sha256:0e86c69382c24c8a3b35837e7a4b79722aadf043a7ff4859f24e21fff13f7723",
+      "path": "packages/digital-humans/openkursar/cn-stock-daily",
+      "size_bytes": 5250,
+      "checksum": "sha256:07310343be51be5117b8662c84c4577c4e50eb5262154efd00cfe2280656606e",
       "category": "data",
       "tags": [
         "stocks",
@@ -211,7 +211,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:43:05.213Z",
+      "updated_at": "2026-05-26T09:33:10.467Z",
       "i18n": {
         "zh-CN": {
           "name": "A股港股日报",
@@ -220,16 +220,16 @@
       }
     },
     {
-      "slug": "complexity-watchdog",
+      "slug": "openkursar/complexity-watchdog",
       "name": "Code Complexity Watchdog",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Watches your source files for changes and runs instant complexity checks — alerts when a file grows too large or accumulates too many TODO/FIXME markers, so tech debt stays visible.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/complexity-watchdog",
-      "size_bytes": 9871,
-      "checksum": "sha256:39738d0fe95a44ff2a605aaff8482002f0c2f4867abdd525959a8858559eb326",
+      "path": "packages/digital-humans/openkursar/complexity-watchdog",
+      "size_bytes": 9882,
+      "checksum": "sha256:191baed2b4ab96489a1b8a10e5c9ca1afc3fd77bf679526e27e90eadc9b4a32d",
       "category": "dev-tools",
       "tags": [
         "code-quality",
@@ -243,7 +243,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-24T11:56:02.063Z",
+      "updated_at": "2026-05-26T09:33:10.474Z",
       "i18n": {
         "zh-CN": {
           "name": "代码复杂度守卫",
@@ -252,16 +252,16 @@
       }
     },
     {
-      "slug": "daily-weather-outfit",
+      "slug": "openkursar/daily-weather-outfit",
       "name": "Daily Weather & Outfit",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Delivers a personalized morning brief every day — today's weather, a practical outfit recommendation, and any travel advisories worth knowing.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/daily-weather-outfit",
-      "size_bytes": 5686,
-      "checksum": "sha256:4ea1183cffc9bcd94fd5d87456f3e4252487fd8c04004b63634e3418e47bab20",
+      "path": "packages/digital-humans/openkursar/daily-weather-outfit",
+      "size_bytes": 5697,
+      "checksum": "sha256:f80d94121b2cc7c9bfe25d80619c7084af70e4e0bf3890e38c05adf128c2f5b1",
       "category": "productivity",
       "tags": [
         "weather",
@@ -276,7 +276,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:45:20.693Z",
+      "updated_at": "2026-05-26T09:33:10.480Z",
       "i18n": {
         "zh-CN": {
           "name": "每日天气穿搭助手",
@@ -285,16 +285,16 @@
       }
     },
     {
-      "slug": "dependency-vulnerability-scanner",
+      "slug": "openkursar/dependency-vulnerability-scanner",
       "name": "Dependency Vulnerability Scanner",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Watches your project's dependency files for changes and runs a scheduled weekly scan — alerts when new security vulnerabilities are found, sorted by severity.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/dependency-vulnerability-scanner",
-      "size_bytes": 10009,
-      "checksum": "sha256:f9828d160060986d4ca71fa04a09d7be4da3336c13dc3e6272cf88d82cec6bdd",
+      "path": "packages/digital-humans/openkursar/dependency-vulnerability-scanner",
+      "size_bytes": 10020,
+      "checksum": "sha256:e343c67b550466e9c34dfb066f11cbe93224c1081d2ac7f1ab89168756f7f8e6",
       "category": "dev-tools",
       "tags": [
         "security",
@@ -308,7 +308,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-24T11:51:24.154Z",
+      "updated_at": "2026-05-26T09:33:10.488Z",
       "i18n": {
         "zh-CN": {
           "name": "依赖漏洞侦察兵",
@@ -317,16 +317,16 @@
       }
     },
     {
-      "slug": "douyin-comment-replier",
+      "slug": "openkursar/douyin-comment-replier",
       "name": "Douyin Comment Replier",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors a Douyin video for new comments and auto-replies as the creator — friendly, specific, and duplicate-free.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/douyin-comment-replier",
-      "size_bytes": 6649,
-      "checksum": "sha256:76ca018e905875fdf38b267e2651aa9fb4958b549834381c9b822bd18aac9742",
+      "path": "packages/digital-humans/openkursar/douyin-comment-replier",
+      "size_bytes": 6660,
+      "checksum": "sha256:e72431fa9f14632c5e1ac06e859ae1fb5e4974321f03ca3afb2a558b5f035831",
       "category": "social",
       "tags": [
         "douyin",
@@ -341,7 +341,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T10:50:02.035Z",
+      "updated_at": "2026-05-26T09:33:10.495Z",
       "i18n": {
         "zh-CN": {
           "name": "抖音评论自动回复",
@@ -350,16 +350,16 @@
       }
     },
     {
-      "slug": "ecom-price-monitor",
+      "slug": "openkursar/ecom-price-monitor",
       "name": "Ecom Price Monitor",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Tracks prices and stock status across multiple e-commerce platforms for any product URLs you provide — alerts when a target price is hit or stock changes.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/ecom-price-monitor",
-      "size_bytes": 6848,
-      "checksum": "sha256:e3060dbca14ba7724d632a2a290b7456f3c3c1bffd8ae24a9fe74a4ee39552f1",
+      "path": "packages/digital-humans/openkursar/ecom-price-monitor",
+      "size_bytes": 6859,
+      "checksum": "sha256:db6ba86c2e84fb61fefe4c05401f38f43fcfb12405054766c8ee6f2485b01961",
       "category": "shopping",
       "tags": [
         "price",
@@ -375,7 +375,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T11:35:21.107Z",
+      "updated_at": "2026-05-26T09:33:10.503Z",
       "i18n": {
         "zh-CN": {
           "name": "电商价格库存监控官",
@@ -384,16 +384,16 @@
       }
     },
     {
-      "slug": "friday-milktea-secretary",
+      "slug": "openkursar/friday-milktea-secretary",
       "name": "周五奶茶秘书",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "每周五下午自动在团队微信群发起奶茶投票、菜单接龙、截龙下单（生成美团待支付订单），由秘书完成最后支付。主人指令优先，AI 灵活解读自然语言。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/friday-milktea-secretary",
-      "size_bytes": 20727,
-      "checksum": "sha256:eafb8655b0a7a1bfab38091de9bf25dc2af6f04ed81835dc7f56c3a7c636c0b6",
+      "path": "packages/digital-humans/openkursar/friday-milktea-secretary",
+      "size_bytes": 20738,
+      "checksum": "sha256:6628c45919e416b0e208ae39ccb7a1784e091bf2696ead75fc9f6e1a686bb31b",
       "category": "productivity",
       "tags": [
         "meituan",
@@ -453,7 +453,7 @@
           "id": "openkursar/meituan-order-status"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.690Z",
+      "updated_at": "2026-05-26T09:33:10.510Z",
       "i18n": {
         "en-US": {
           "name": "Friday Milk Tea Secretary",
@@ -465,16 +465,16 @@
       }
     },
     {
-      "slug": "github-issue-triager",
+      "slug": "openkursar/github-issue-triager",
       "name": "GitHub Issue Triager",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Receives new GitHub issues via webhook, classifies them by type, applies labels, posts a professional first response, and escalates critical or security issues immediately.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/github-issue-triager",
-      "size_bytes": 9647,
-      "checksum": "sha256:aa667390bfe0958ed2b343c66e5240ca82c926e75d4ea397b1514511b75657e6",
+      "path": "packages/digital-humans/openkursar/github-issue-triager",
+      "size_bytes": 9658,
+      "checksum": "sha256:aed8d45bb139c9e1b3410f797cb8ee1959ff6bf18b4ea4af4e601fdb7d90d41c",
       "category": "dev-tools",
       "tags": [
         "github",
@@ -490,7 +490,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T11:49:02.607Z",
+      "updated_at": "2026-05-26T09:33:10.520Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub Issue 分诊官",
@@ -499,16 +499,16 @@
       }
     },
     {
-      "slug": "github-pr-reviewer",
+      "slug": "openkursar/github-pr-reviewer",
       "name": "GitHub PR Reviewer",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "Automatically reviews open pull requests and merges those that meet all quality criteria; flags the rest for human decision.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/github-pr-reviewer",
-      "size_bytes": 6158,
-      "checksum": "sha256:16daef18772b9bf29aa3c4301dc16b4a7d43167297ad24c84a22516ceb4c510d",
+      "path": "packages/digital-humans/openkursar/github-pr-reviewer",
+      "size_bytes": 6169,
+      "checksum": "sha256:01b1222765ebf82e9d5cefc5e2906c17d73ef9233a96243aa2b098001345762f",
       "category": "dev-tools",
       "tags": [
         "github",
@@ -523,7 +523,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T10:50:02.035Z",
+      "updated_at": "2026-05-26T09:33:10.528Z",
       "i18n": {
         "zh-CN": {
           "name": "GitHub PR 审查员",
@@ -532,16 +532,16 @@
       }
     },
     {
-      "slug": "hn-daily",
+      "slug": "openkursar/hn-daily",
       "name": "HN Daily Brief",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "Summarizes high-value Hacker News discussions every morning and delivers a deduped, actionable digest.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/hn-daily",
-      "size_bytes": 4565,
-      "checksum": "sha256:a470fe31c1f0637015f9d0f80286f80c47d875e3651fbcd1c3223a5dfd4ef6db",
+      "path": "packages/digital-humans/openkursar/hn-daily",
+      "size_bytes": 4576,
+      "checksum": "sha256:9d44f43de66fd9bb3a6c1eb64cebb8b07c0458ba682d50b9285c2bdbb71ab227",
       "category": "news",
       "tags": [
         "hn",
@@ -555,7 +555,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:11.977Z",
+      "updated_at": "2026-05-26T09:33:10.536Z",
       "i18n": {
         "zh-CN": {
           "name": "HN 每日简报",
@@ -567,16 +567,16 @@
       }
     },
     {
-      "slug": "jd-price-hunter",
+      "slug": "openkursar/jd-price-hunter",
       "name": "JD Price Hunter",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "Monitors a JD product page for price drops and promotions, notifies when the price hits the target, and avoids duplicate alerts.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/jd-price-hunter",
-      "size_bytes": 5450,
-      "checksum": "sha256:cc2d860d10c1d1d4b78539407129890c104e76ff26a7aace8d21be09e794f661",
+      "path": "packages/digital-humans/openkursar/jd-price-hunter",
+      "size_bytes": 5461,
+      "checksum": "sha256:678682562c5efd2a181305750fad1d8bfe8216bc0b3e55d88714408e9ce0b0f5",
       "category": "shopping",
       "tags": [
         "shopping",
@@ -590,7 +590,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T09:31:36.371Z",
+      "updated_at": "2026-05-26T09:33:10.544Z",
       "i18n": {
         "zh-CN": {
           "name": "京东价格猎手",
@@ -599,16 +599,16 @@
       }
     },
     {
-      "slug": "parcel-tracker",
+      "slug": "openkursar/parcel-tracker",
       "name": "Parcel Tracker",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Tracks your parcels across all major Chinese carriers, alerts on status changes, and notifies when delivery is near or complete.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/parcel-tracker",
-      "size_bytes": 5483,
-      "checksum": "sha256:61bc138d479da5896234caa8b7f292ab101ef642c1f8f9c2c959311cc48b55f0",
+      "path": "packages/digital-humans/openkursar/parcel-tracker",
+      "size_bytes": 5494,
+      "checksum": "sha256:c5575d1bcedc4191f25071232da6935935a7d8cf1e2116bff6af15c5f7b9860e",
       "category": "productivity",
       "tags": [
         "parcel",
@@ -623,7 +623,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:43:05.235Z",
+      "updated_at": "2026-05-26T09:33:10.552Z",
       "i18n": {
         "zh-CN": {
           "name": "快递追踪助手",
@@ -632,16 +632,16 @@
       }
     },
     {
-      "slug": "release-gatekeeper",
+      "slug": "openkursar/release-gatekeeper",
       "name": "Release Gatekeeper",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Automatically audits your GitHub repository before each release — checks CI status, open issues, PR health, and change scope — and gives a clear go/no-go decision.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/release-gatekeeper",
-      "size_bytes": 8952,
-      "checksum": "sha256:a1106d1de9767d6214a1b14bcfd3cf9ef7a29c03ac307da10f7d680047b8613c",
+      "path": "packages/digital-humans/openkursar/release-gatekeeper",
+      "size_bytes": 8963,
+      "checksum": "sha256:5b7eaaa638d53cc55f4469d5ff2ac70005ae9557c5d6f8e2cadad7c2fa4a7a9e",
       "category": "dev-tools",
       "tags": [
         "release",
@@ -654,7 +654,7 @@
       "icon": "dev",
       "locale": "en-US",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-24T11:36:24.724Z",
+      "updated_at": "2026-05-26T09:33:10.560Z",
       "i18n": {
         "zh-CN": {
           "name": "发布风险守门员",
@@ -663,16 +663,16 @@
       }
     },
     {
-      "slug": "sentiment-monitor",
+      "slug": "openkursar/sentiment-monitor",
       "name": "Sentiment Monitor",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Tracks brand mentions, competitor moves, and policy changes across news and public platforms — delivers a daily risk-graded digest with actionable highlights.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/sentiment-monitor",
-      "size_bytes": 7308,
-      "checksum": "sha256:062a838540aae5025c24884a4106ca3b1932aa1ce48474041aa43f004bab041f",
+      "path": "packages/digital-humans/openkursar/sentiment-monitor",
+      "size_bytes": 7319,
+      "checksum": "sha256:1c30255e3ba54e6751d7d70fa25bc9fcaf1d3bf4efe81ffd527e9692f947eefb",
       "category": "news",
       "tags": [
         "brand",
@@ -688,7 +688,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T11:00:04.461Z",
+      "updated_at": "2026-05-26T09:33:10.568Z",
       "i18n": {
         "zh-CN": {
           "name": "舆情监测官",
@@ -700,16 +700,16 @@
       }
     },
     {
-      "slug": "site-health-monitor",
+      "slug": "openkursar/site-health-monitor",
       "name": "Site Health Monitor",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Checks your website's critical user flows (login, checkout, key pages) on a schedule and alerts you the moment something breaks — before your users do.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/site-health-monitor",
-      "size_bytes": 6441,
-      "checksum": "sha256:1c59ab559b2d816cf10d79b259a87b993c15c89b34d09fff1461a3df39ad6957",
+      "path": "packages/digital-humans/openkursar/site-health-monitor",
+      "size_bytes": 6452,
+      "checksum": "sha256:6230bb798b7e7cbfc844c0bf3386a11f5f98eb5898684611e61f91867c7adda7",
       "category": "dev-tools",
       "tags": [
         "uptime",
@@ -725,7 +725,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T11:33:34.472Z",
+      "updated_at": "2026-05-26T09:33:10.577Z",
       "i18n": {
         "zh-CN": {
           "name": "网站健康巡检官",
@@ -734,16 +734,16 @@
       }
     },
     {
-      "slug": "taobao-price-hunter",
+      "slug": "openkursar/taobao-price-hunter",
       "name": "Taobao Price Hunter",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors a Taobao or Tmall product page for price drops and promotions, notifies when the price hits the target, and avoids duplicate alerts.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/taobao-price-hunter",
-      "size_bytes": 6552,
-      "checksum": "sha256:5d3ac73d75df69adb1e183a3e60e92509573813560738d9bc4c38dd745b4aa2c",
+      "path": "packages/digital-humans/openkursar/taobao-price-hunter",
+      "size_bytes": 6563,
+      "checksum": "sha256:c01796650426c97d0ecb02d4580a0604d20b87a481f61c6579c1ecdbe313ea54",
       "category": "shopping",
       "tags": [
         "taobao",
@@ -758,7 +758,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:41:26.293Z",
+      "updated_at": "2026-05-26T09:33:10.587Z",
       "i18n": {
         "zh-CN": {
           "name": "淘宝天猫价格猎手",
@@ -767,16 +767,16 @@
       }
     },
     {
-      "slug": "tender-radar",
+      "slug": "openkursar/tender-radar",
       "name": "Tender Radar",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors government and enterprise procurement portals for new tenders matching your industry, budget, and region — delivers a prioritized opportunity list every day.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/tender-radar",
-      "size_bytes": 7013,
-      "checksum": "sha256:7738725f8e7bc0129c661a88d72c51babfa5e8df631f48bb6acb59684e66ca39",
+      "path": "packages/digital-humans/openkursar/tender-radar",
+      "size_bytes": 7024,
+      "checksum": "sha256:4130bde098f8690a01ee80434599ab4efed573c70013cfff70cde49460b43887",
       "category": "productivity",
       "tags": [
         "tender",
@@ -791,7 +791,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T11:31:47.909Z",
+      "updated_at": "2026-05-26T09:33:10.594Z",
       "i18n": {
         "zh-CN": {
           "name": "招投标机会雷达",
@@ -800,16 +800,16 @@
       }
     },
     {
-      "slug": "ticket-triage-agent",
+      "slug": "openkursar/ticket-triage-agent",
       "name": "Ticket Triage Agent",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Receives incoming support tickets via webhook, classifies them by type and urgency, generates a first-response draft, and escalates high-priority cases immediately.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/ticket-triage-agent",
-      "size_bytes": 6474,
-      "checksum": "sha256:37c29d43b3cd529f3398a6eb943c72c9b7bc251b2e5c7827d31a36d6f7f0ef2f",
+      "path": "packages/digital-humans/openkursar/ticket-triage-agent",
+      "size_bytes": 6485,
+      "checksum": "sha256:918bea0976a9bce4f95ad84e5c605512f362e65098397fd015d7ca7bdd28974c",
       "category": "productivity",
       "tags": [
         "support",
@@ -822,7 +822,7 @@
       "icon": "productivity",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-02-24T11:34:26.063Z",
+      "updated_at": "2026-05-26T09:33:10.599Z",
       "i18n": {
         "zh-CN": {
           "name": "客服工单分诊官",
@@ -831,16 +831,16 @@
       }
     },
     {
-      "slug": "train-ticket-watcher",
+      "slug": "openkursar/train-ticket-watcher",
       "name": "Train Ticket Watcher",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors 12306 for available train tickets on your chosen date and route, and alerts you the moment seats open up.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/train-ticket-watcher",
-      "size_bytes": 6975,
-      "checksum": "sha256:7bcd4a04e7328afa3402e77058f8d4ebda2da896773cdff37e39e7cb71904ee1",
+      "path": "packages/digital-humans/openkursar/train-ticket-watcher",
+      "size_bytes": 6986,
+      "checksum": "sha256:f79f1d6a9489dcd3ded83929ca8e2f2dd547b9cfe508593e4aec15ca1e9536aa",
       "category": "productivity",
       "tags": [
         "train",
@@ -854,7 +854,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:45:20.655Z",
+      "updated_at": "2026-05-26T09:33:10.608Z",
       "i18n": {
         "zh-CN": {
           "name": "12306 余票监控",
@@ -863,16 +863,16 @@
       }
     },
     {
-      "slug": "wechat-article-monitor",
+      "slug": "openkursar/wechat-article-monitor",
       "name": "WeChat Article Monitor",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "Monitors WeChat article source pages for new publications and delivers a deduplicated digest of fresh content.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/wechat-article-monitor",
-      "size_bytes": 5353,
-      "checksum": "sha256:87010458201ad42a137d4838b487d3b80d3044f642db2b784b75d8c6a29320d4",
+      "path": "packages/digital-humans/openkursar/wechat-article-monitor",
+      "size_bytes": 5364,
+      "checksum": "sha256:ccd3222c18fe3ba272a30f2422c6862384af624c9775d4dfff7b506f12e99893",
       "category": "content",
       "tags": [
         "wechat",
@@ -886,7 +886,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T09:31:41.480Z",
+      "updated_at": "2026-05-26T09:33:10.614Z",
       "i18n": {
         "zh-CN": {
           "name": "微信文章监控",
@@ -895,16 +895,16 @@
       }
     },
     {
-      "slug": "wechat-group-assistant",
+      "slug": "openkursar/wechat-group-assistant",
       "name": "微信群 AI 数字人(web 版本)",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "部署在微信群里的 AI 数字分身，通过微信网页版 DOM 自动监控群消息并智能回复。使用前提：在 Halo AI 浏览器中打开 wx.qq.com 并保持登录状态，无需任何额外配置或桥接服务。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/wechat-group-assistant",
-      "size_bytes": 9076,
-      "checksum": "sha256:d122c3346237b51ea36fdd24b0f1b3a41c862581b743a8c3faf6feeedf9b01b2",
+      "path": "packages/digital-humans/openkursar/wechat-group-assistant",
+      "size_bytes": 9087,
+      "checksum": "sha256:f2a10cfb05429c9d9f30e4db2eb82888d61cdc94f8eb659c79bc4b08f96588ed",
       "category": "social",
       "tags": [
         "wechat",
@@ -916,19 +916,19 @@
       "icon": "social",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-14T03:06:53.464Z"
+      "updated_at": "2026-05-26T09:33:10.631Z"
     },
     {
-      "slug": "wechat-group-assistant-http",
+      "slug": "openkursar/wechat-group-assistant-http",
       "name": "微信群 AI 数字人（HTTP Bridge 版）",
       "version": "1.1.0",
       "author": "openkursar",
       "description": "An AI digital human that monitors a WeChat group, intelligently replies to relevant messages, and maintains persistent memory across sessions. Requires a custom WeChat HTTP bridge for message reading and sending.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/wechat-group-assistant-http",
-      "size_bytes": 9883,
-      "checksum": "sha256:205279b8ccaec652c0c7e8e4372d3095e1b1ece1c708715b4460de47298962e4",
+      "path": "packages/digital-humans/openkursar/wechat-group-assistant-http",
+      "size_bytes": 9894,
+      "checksum": "sha256:a926a2801e5ee6db8c8c03a77249b756d875f10cce8e90ed33b07020f832d506",
       "category": "social",
       "tags": [
         "wechat",
@@ -940,7 +940,7 @@
       "icon": "social",
       "locale": "zh-CN",
       "min_app_version": "0.5.0",
-      "updated_at": "2026-03-14T02:58:49.995Z",
+      "updated_at": "2026-05-26T09:33:10.621Z",
       "i18n": {
         "zh-CN": {
           "name": "微信群 AI 数字人",
@@ -949,16 +949,16 @@
       }
     },
     {
-      "slug": "weibo-hot-tracker",
+      "slug": "openkursar/weibo-hot-tracker",
       "name": "Weibo Hot Tracker",
       "version": "2.0.0",
       "author": "openkursar",
       "description": "Tracks Weibo trending topics and reports meaningful rank changes — new entries, significant rises, and notable drops.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/weibo-hot-tracker",
-      "size_bytes": 5320,
-      "checksum": "sha256:84b34410573e68554c919be48593970dd6119683df60e571eed40e3642757ee1",
+      "path": "packages/digital-humans/openkursar/weibo-hot-tracker",
+      "size_bytes": 5331,
+      "checksum": "sha256:4e5342eda96db16420273b65e26ad5975f40a6df1e87a6f4ad1750440dadd829",
       "category": "social",
       "tags": [
         "weibo",
@@ -972,7 +972,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T12:04:11.978Z",
+      "updated_at": "2026-05-26T09:33:10.638Z",
       "i18n": {
         "zh-CN": {
           "name": "微博热点追踪",
@@ -984,16 +984,16 @@
       }
     },
     {
-      "slug": "x-publisher",
+      "slug": "openkursar/x-publisher",
       "name": "X 内容助手",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "自然语言驱动的 X（推特）内容助手——按用户指令发推、回推、查推、查人、搜话题。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/x-publisher",
-      "size_bytes": 3896,
-      "checksum": "sha256:9eb0fd44b6d4872c3d6484558dc22c1119459835adde47f3fd5a076632fcdced",
+      "path": "packages/digital-humans/openkursar/x-publisher",
+      "size_bytes": 3907,
+      "checksum": "sha256:f0e4af165ecc22022a8494ccc4efc0c6f1207e687f991c1bca7017049dbab965",
       "category": "social",
       "tags": [
         "x",
@@ -1034,22 +1034,22 @@
           "id": "openkursar/x-read-profile"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.698Z",
+      "updated_at": "2026-05-26T09:33:10.643Z",
       "meta": {
         "rank": 5
       }
     },
     {
-      "slug": "xianyu-deal-hunter",
+      "slug": "openkursar/xianyu-deal-hunter",
       "name": "Xianyu Deal Hunter",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors Xianyu (Idle Fish) for new second-hand listings matching your search, filters by price and condition, and alerts you instantly on new finds.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/xianyu-deal-hunter",
-      "size_bytes": 5732,
-      "checksum": "sha256:586c5c97262a278f0b765d99e5ab41db18088a89fa6b518ce404f3b1a0a0ef02",
+      "path": "packages/digital-humans/openkursar/xianyu-deal-hunter",
+      "size_bytes": 5743,
+      "checksum": "sha256:c508e46783b4b33314dee5a79dd64c3d153e9b2b10f45f10a2c819611e4abdbf",
       "category": "shopping",
       "tags": [
         "xianyu",
@@ -1064,7 +1064,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-02-24T10:43:05.191Z",
+      "updated_at": "2026-05-26T09:33:10.649Z",
       "i18n": {
         "zh-CN": {
           "name": "闲鱼捡漏助手",
@@ -1073,16 +1073,16 @@
       }
     },
     {
-      "slug": "xiaohongshu-ai-engager",
+      "slug": "openkursar/xiaohongshu-ai-engager",
       "name": "小红书互动助手",
       "version": "2.1.0",
       "author": "openkursar",
       "description": "自动搜索小红书相关帖子，以真实用户语气发表简短评论，促进社区互动。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/xiaohongshu-ai-engager",
-      "size_bytes": 5887,
-      "checksum": "sha256:1af9c8e7ea6b4bbaf9f6ae78b7236bc61147ddf68e55643a394b150cc13e84ea",
+      "path": "packages/digital-humans/openkursar/xiaohongshu-ai-engager",
+      "size_bytes": 12046,
+      "checksum": "sha256:17196acf02a096775efc99a9a8d4f83276fd7d183c53dcd36ae492e64918bdc5",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -1111,22 +1111,22 @@
           "id": "openkursar/xhs-comment"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.702Z",
+      "updated_at": "2026-05-26T09:33:10.654Z",
       "meta": {
         "rank": 4
       }
     },
     {
-      "slug": "xiaohongshu-keyword-monitor",
+      "slug": "openkursar/xiaohongshu-keyword-monitor",
       "name": "Xiaohongshu Keyword Monitor",
       "version": "4.0.0",
       "author": "openkursar",
       "description": "Passively monitors Xiaohongshu for new posts mentioning your brand, product, or topic — surfaces what people are saying without any interaction.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/xiaohongshu-keyword-monitor",
-      "size_bytes": 8800,
-      "checksum": "sha256:c81b04dee5a480524141b63f2ea4a27427a87aeb3f263589daacb59f8c217472",
+      "path": "packages/digital-humans/openkursar/xiaohongshu-keyword-monitor",
+      "size_bytes": 17007,
+      "checksum": "sha256:48a1c3f108cb146a3135ff26a6c0e8dd26a561912ff2a38430f7e3eb43677398",
       "category": "social",
       "tags": [
         "xiaohongshu",
@@ -1149,7 +1149,7 @@
           "id": "openkursar/xhs-search"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.704Z",
+      "updated_at": "2026-05-26T09:33:10.661Z",
       "i18n": {
         "zh-CN": {
           "name": "小红书关键词监控",
@@ -1161,16 +1161,16 @@
       }
     },
     {
-      "slug": "zhihu-account-nurturer",
+      "slug": "openkursar/zhihu-account-nurturer",
       "name": "知乎养号助手",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "每天模拟真实用户行为：从已回答问题中挖掘潜在互粉用户并关注，同时自然浏览 Feed 并点赞目标话题内容，降低账号行为单一风险。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/zhihu-account-nurturer",
-      "size_bytes": 9057,
-      "checksum": "sha256:bb57731276e5beeab34a2bb448ecd4118583ecf725b280988e901efbc9899be9",
+      "path": "packages/digital-humans/openkursar/zhihu-account-nurturer",
+      "size_bytes": 9068,
+      "checksum": "sha256:b4129e0fbdfdc44d059b31192258a76a847f41335b116f515b6177100106b071",
       "category": "social",
       "tags": [
         "zhihu",
@@ -1187,7 +1187,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-04-04T08:36:04.745Z",
+      "updated_at": "2026-05-26T09:33:10.670Z",
       "i18n": {
         "en-US": {
           "name": "Zhihu Account Nurturer",
@@ -1196,16 +1196,16 @@
       }
     },
     {
-      "slug": "zhihu-ai-answerer",
+      "slug": "openkursar/zhihu-ai-answerer",
       "name": "知乎 AI 话题抢答助手",
       "version": "1.1.0",
       "author": "openkursar",
       "description": "自动从多个来源（搜索、热搜、邀请）发现 AI 热门问题，生成犀利有深度的回答并发布，帮助账号在 AI 领域快速积累影响力。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/zhihu-ai-answerer",
-      "size_bytes": 14123,
-      "checksum": "sha256:71782dce794aefe16ca28804b27d5d4b9f3ab6d83722f85ab2335d91e5c8eec5",
+      "path": "packages/digital-humans/openkursar/zhihu-ai-answerer",
+      "size_bytes": 14134,
+      "checksum": "sha256:4bc6d6b8fa837d5824ab868e9ca774e63f13f009e08d7e35ea2833114edbbfad",
       "category": "social",
       "tags": [
         "zhihu",
@@ -1254,19 +1254,19 @@
           "id": "openkursar/zhihu-metrics-answers"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.724Z"
+      "updated_at": "2026-05-26T09:33:10.676Z"
     },
     {
-      "slug": "zhihu-pin-publisher",
+      "slug": "openkursar/zhihu-pin-publisher",
       "name": "知乎想法发布器",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "把外部素材（文件 / RSS / 剪贴板 / 自定义提示词）按计划改写为符合知乎调性的「想法」（pin）并自动发布。给账号持续输出短动态，不必每天手动想内容。",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/zhihu-pin-publisher",
-      "size_bytes": 7056,
-      "checksum": "sha256:e06f625685392672f60ffe1fca57f1a8a469365c315bef7f02fb3db8f3ac05c4",
+      "path": "packages/digital-humans/openkursar/zhihu-pin-publisher",
+      "size_bytes": 7067,
+      "checksum": "sha256:583c4de31add8761f48d54b6bc8db755d96adb7b2bfd611ff9ff11a497171bde",
       "category": "content",
       "tags": [
         "zhihu",
@@ -1293,7 +1293,7 @@
           "id": "openkursar/zhihu-publish-pin"
         }
       ],
-      "updated_at": "2026-05-23T06:54:32.722Z",
+      "updated_at": "2026-05-26T09:33:10.682Z",
       "i18n": {
         "en-US": {
           "name": "Zhihu Pin Publisher",
@@ -1305,16 +1305,16 @@
       }
     },
     {
-      "slug": "zhihu-topic-monitor",
+      "slug": "openkursar/zhihu-topic-monitor",
       "name": "Zhihu Topic Monitor",
       "version": "1.0.0",
       "author": "openkursar",
       "description": "Monitors a Zhihu topic for new high-quality questions and answers, and delivers a curated digest of what's worth reading.",
       "type": "automation",
       "format": "bundle",
-      "path": "packages/digital-humans/zhihu-topic-monitor",
-      "size_bytes": 5419,
-      "checksum": "sha256:a9438a517246b0a2ade21e0714176e4e9630c28874eb9f264ad8c20b6ecf9148",
+      "path": "packages/digital-humans/openkursar/zhihu-topic-monitor",
+      "size_bytes": 5430,
+      "checksum": "sha256:fe923820f6ade5457fb5472f0fee6b05e11acfb41ad51aae8b722ac67a15b4e7",
       "category": "content",
       "tags": [
         "zhihu",
@@ -1329,7 +1329,7 @@
       "requires_mcps": [
         "ai-browser"
       ],
-      "updated_at": "2026-03-07T10:50:02.038Z",
+      "updated_at": "2026-05-26T09:33:10.690Z",
       "i18n": {
         "zh-CN": {
           "name": "知乎话题监控",

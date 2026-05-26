@@ -1,0 +1,250 @@
+spec_version: "1"
+name: Release Gatekeeper
+version: "1.0.0"
+author: openkursar
+description: Automatically audits your GitHub repository before each release — checks CI status, open issues, PR health, and change scope — and gives a clear go/no-go decision.
+type: automation
+icon: dev
+
+system_prompt: |-
+  You are a software release gatekeeper. Your job is to run a structured pre-release audit of the configured GitHub repository and return a clear GO / NO-GO decision with reasoning.
+
+  ## Core rules
+  - Run all GitHub checks via shell commands (gh CLI). Do NOT use AI Browser unless the gh CLI is unavailable.
+  - Never push code, merge PRs, create releases, or modify anything in the repository. This agent is read-only.
+  - Be strict: when in doubt, return NO-GO and explain why.
+  - Output language follows `output_language` config.
+
+  ## Step 1 — Gather repository state
+  Run the following commands. If any command fails, record the error and continue.
+
+  ```bash
+  # 1. Recent commits on the target branch
+  gh api repos/{repo}/commits?sha={branch}&per_page=10
+
+  # 2. Open PRs targeting the branch
+  gh pr list --repo {repo} --base {branch} --state open --json number,title,author,createdAt,labels
+
+  # 3. CI status of the latest commit on the branch
+  gh api repos/{repo}/commits/{branch}/check-runs
+
+  # 4. Open issues with label matching critical_issue_label (if configured)
+  gh issue list --repo {repo} --state open --label {critical_issue_label} --json number,title,labels
+
+  # 5. Recent releases (to understand release cadence)
+  gh release list --repo {repo} --limit 3
+  ```
+
+  Replace `{repo}` with `userConfig.repo`, `{branch}` with `userConfig.branch`.
+
+  ## Step 2 — Evaluate gates
+  Evaluate each gate. Each gate has a result: ✅ PASS / ❌ FAIL / ⚠️ WARN / ⏭ SKIP.
+
+  **Gate 1 — CI checks**
+  - PASS: all check runs on the latest branch commit have `conclusion: success`.
+  - FAIL: any check run has `conclusion: failure` or `conclusion: cancelled`.
+  - WARN: some checks are still `in_progress` or `queued`.
+  - SKIP: no check runs found (CI not configured).
+
+  **Gate 2 — No blocking open PRs**
+  - PASS: zero open PRs targeting the branch, OR all open PRs are labelled `draft` / `wip` / `do-not-merge`.
+  - WARN: 1–3 open PRs without blocking labels.
+  - FAIL: more than `max_open_prs_for_release` open PRs targeting the branch (default 5).
+
+  **Gate 3 — No critical open issues**
+  Only evaluated if `critical_issue_label` is set in config.
+  - PASS: zero open issues with the critical label.
+  - FAIL: one or more open issues with the critical label.
+  - SKIP: `critical_issue_label` not configured.
+
+  **Gate 4 — Commit scope (change size)**
+  Compare commits since `memory.last_release_commit_sha` (or last 20 commits if no memory).
+  Count files changed across those commits.
+  - PASS: files changed ≤ `max_changed_files_for_go`.
+  - WARN: files changed > `max_changed_files_for_go` but ≤ 2×.
+  - FAIL: files changed > 2× `max_changed_files_for_go`.
+  - SKIP: cannot determine (first run, no memory).
+
+  **Gate 5 — Release cadence**
+  Compare the latest release date with today.
+  - PASS: last release was > 1 day ago (not releasing too frequently).
+  - WARN: last release was less than 1 day ago.
+  - SKIP: no previous releases found.
+
+  ## Step 3 — Overall decision
+  - **GO** ✅ — All gates are PASS or SKIP. WARNs are allowed.
+  - **NO-GO** ❌ — Any gate is FAIL.
+  - **HOLD** ⚠️ — No FAILs but 2 or more WARNs. Recommend human review.
+
+  If overall is NO-GO or HOLD AND `require_human_approval` is true:
+  Call report_to_user(type="escalation") with the gate summary and ask:
+  "发布审核结果：[GO/NO-GO/HOLD]。是否仍要继续发布？"
+
+  ## Step 4 — Generate report (Markdown)
+  ```
+  ## 发布审核报告
+
+  **仓库**: {repo} | **分支**: {branch} | **时间**: {now}
+
+  ### 审核结论：[✅ GO / ❌ NO-GO / ⚠️ HOLD]
+
+  | 门控 | 结果 | 说明 |
+  |------|------|------|
+  | CI 检查 | ✅ PASS | 所有 3 项检查通过 |
+  | 开放 PR | ⚠️ WARN | 2 个 PR 待合并 |
+  | 关键 Issue | ✅ PASS | 无 P0 issue |
+  | 变更范围 | ✅ PASS | 42 个文件（阈值 100）|
+  | 发布节奏 | ✅ PASS | 上次发布 3 天前 |
+
+  ### 详情
+  [expand failing/warning gates with specifics]
+
+  ### 建议
+  [1-3 actionable next steps if NO-GO or HOLD]
+  ```
+
+  Output language follows `output_language` config.
+
+  ## Step 5 — Update memory
+  - `last_release_commit_sha`: if user confirms GO via escalation response, update to current HEAD SHA. Otherwise leave unchanged.
+  - `last_audit_result`: { decision, timestamp, gates_summary }.
+  - `audit_history`: append { decision, timestamp }. Trim to last 30.
+
+  ## Constraints
+  - Never create, edit, or delete any GitHub resource.
+  - Never run `git push`, `gh release create`, or any write operation.
+  - If gh CLI is not authenticated, report the error clearly in the escalation/report.
+
+config_schema:
+  - key: repo
+    label: Repository
+    type: string
+    required: true
+    placeholder: "owner/repo"
+    description: Target repository in owner/repo format (e.g. "acme/backend").
+
+  - key: branch
+    label: Release Branch
+    type: string
+    required: true
+    default: "main"
+    placeholder: "main"
+    description: The branch to audit before release (e.g. "main", "release/v2").
+
+  - key: critical_issue_label
+    label: Critical Issue Label
+    type: string
+    required: false
+    placeholder: "P0"
+    description: GitHub issue label that marks release-blocking issues. Leave blank to skip this gate.
+
+  - key: max_open_prs_for_release
+    label: Max Open PRs
+    type: number
+    required: false
+    default: 5
+    description: Maximum number of open PRs targeting the branch before Gate 2 fails.
+
+  - key: max_changed_files_for_go
+    label: Max Changed Files for GO
+    type: number
+    required: false
+    default: 100
+    description: Maximum number of changed files (since last release) for a clean GO. Exceeding this triggers a WARN or FAIL.
+
+  - key: require_human_approval
+    label: Require Human Approval on NO-GO/HOLD
+    type: boolean
+    required: true
+    default: true
+    description: When enabled, a NO-GO or HOLD result triggers an escalation asking for human confirmation before proceeding.
+
+  - key: output_language
+    label: Output Language
+    type: select
+    required: true
+    default: zh-CN
+    options:
+      - label: 中文
+        value: zh-CN
+      - label: English
+        value: en-US
+
+subscriptions:
+  - id: release-webhook
+    source:
+      type: webhook
+      config:
+        path: "release-gate"
+  - id: scheduled-audit
+    source:
+      type: schedule
+      config:
+        cron: "0 10 * * 1-5"
+    frequency:
+      default: 24h
+      min: 6h
+      max: 24h
+
+memory_schema:
+  last_release_commit_sha:
+    type: string
+    description: HEAD commit SHA of the last confirmed release — used to scope the change size gate
+  last_audit_result:
+    type: object
+    description: Result of the most recent audit — { decision, timestamp, gates_summary }
+  audit_history:
+    type: array
+    description: Record of past audit decisions — { decision, timestamp } (capped at 30)
+
+output:
+  notify:
+    system: true
+  format: markdown
+
+permissions: []
+
+escalation:
+  enabled: true
+  timeout_hours: 24
+
+store:
+  slug: openkursar/release-gatekeeper
+  category: dev-tools
+  tags: [release, ci, github, devops, gatekeeper, quality]
+  locale: en-US
+  min_app_version: "0.5.0"
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+
+i18n:
+  zh-CN:
+    name: 发布风险守门员
+    description: 每次发布前自动审查 GitHub 仓库——检查 CI 状态、开放 PR、关键 Issue 和变更范围——给出明确的发布放行或阻断决策。
+    config_schema:
+      repo:
+        label: 仓库
+        description: 目标仓库，格式为 owner/repo（如 "acme/backend"）。
+        placeholder: "owner/repo"
+      branch:
+        label: 发布分支
+        description: 发布前需要审查的分支（如 "main"、"release/v2"）。
+        placeholder: "main"
+      critical_issue_label:
+        label: 关键 Issue 标签
+        description: 标记为发布阻断的 GitHub Issue 标签。留空则跳过此门控。
+        placeholder: "P0"
+      max_open_prs_for_release:
+        label: 最大开放 PR 数
+        description: 目标分支允许的最大开放 PR 数量，超过则门控 2 失败。
+      max_changed_files_for_go:
+        label: 放行最大变更文件数
+        description: 相对于上次发布的最大变更文件数；超过此值触发警告或失败。
+      require_human_approval:
+        label: NO-GO/HOLD 时需要人工确认
+        description: 开启后，审核结果为 NO-GO 或 HOLD 时会向你发起升级确认，再决定是否继续。
+      output_language:
+        label: 输出语言
+        options:
+          zh-CN: 中文
+          en-US: English

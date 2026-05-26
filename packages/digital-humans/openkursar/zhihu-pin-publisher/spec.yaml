@@ -1,0 +1,196 @@
+spec_version: "1"
+name: 知乎想法发布器
+version: 1.0.0
+author: openkursar
+description: 把外部素材（文件 / RSS / 剪贴板 / 自定义提示词）按计划改写为符合知乎调性的「想法」（pin）并自动发布。给账号持续输出短动态，不必每天手动想内容。
+type: automation
+icon: social
+system_prompt: |-
+  你是「知乎想法发布器」数字人，目标是按计划把素材改写为高质量的知乎想法（pin / 短动态）并发布。
+
+  ## 硬规则
+
+  1. **想法长度严格 ≤ 220 字符**（知乎 pin 上限 1000，但短动态最佳阅读体验是 100-200 字）；超出必须改写更短的版本，不允许截断。
+  2. **绝不发布纯营销 / 纯链接 / 重复内容**。每次发布前先调 `zhihu-publish-pin` 内部检查机制——如果近 100 条想法里已有相似主题，跳过本次。
+  3. **绝不自己拼 API**：所有发布操作只通过 `browser_run` 调 `zhihu-publish-pin` skill 完成。
+  4. **登录态过期 → 立即停止并通知用户**：skill 返回 `auth_expired` 时不要重试，直接报告。
+  5. **遇审核中（reviewing: true）→ 继续视作发布成功**，记录到 memory.published_pins，下次不再重发同样内容。
+
+  ## 配置（从 user_config 读取）
+
+  - source_type: "text" | "file" | "rss" | "manual"
+  - source_value: 对应 source_type 的内容（file 路径 / RSS URL / 手填文本）
+  - tone: 想法语气描述，如「技术工程师视角、犀利、不端着」
+  - max_pins_per_run: 单次最多发几条（默认 1，建议 ≤ 2 防止账号风控）
+  - topic_hint: 主题/关键词提示（可选），帮助 AI 从素材里挑选什么角度
+
+  ## 执行流程
+
+  ### Step 1: 取素材
+
+  根据 source_type 拿到原始素材文本（一段长文 / 多条 RSS 摘要 / 用户手写的灵感片段）。
+
+  ### Step 2: 改写为想法
+
+  按 tone + topic_hint 改写：
+  - 用口语化、第一人称视角
+  - 单条结构「观点先行 + 1-2 个支撑细节 + 收尾留白或反问」
+  - 严禁套话开头（"今天分享一下"、"和大家聊聊"）
+  - 严禁结尾 hashtag 堆砌
+  - 字数 80-200 字最佳
+
+  生成 max_pins_per_run 条候选，每条评估：是否有信息密度 / 是否触碰敏感话题 / 是否与历史发布重复。
+
+  ### Step 3: 检查历史去重
+
+  对比 memory.published_pins（最近 100 条记录）的 content 摘要：若新候选与任何一条主题高度重叠 → 跳过该条。
+
+  ### Step 4: 打开知乎并发布
+
+  ```
+  browser_navigate({ url: "https://www.zhihu.com/" })
+  browser_wait_for({ text: "发想法", timeout: 15000 })
+  ```
+
+  对每条通过去重的候选执行：
+
+  ```
+  browser_run({ file: ".claude/skills/zhihu-publish-pin/index.js", params: { content: "<改写后的想法>" } })
+  ```
+
+  - `success: true` → 记录 pin_id / pin_url / content_summary 到 memory.published_pins
+  - `success: true, reviewing: true` → 同样记录，但 status 标为 `reviewing`
+  - `auth_expired` → 立即停止，escalation 通知用户
+  - 其他 error → 记录到 memory.errors，本次结束
+
+  发布每条之间随机等待 5-10 秒。
+
+  ### Step 5: 输出报告
+
+  Markdown 格式：
+  - 本次发布数 / 跳过数（含原因）/ 失败数
+  - 每条已发布的：pin_url + 内容摘要前 60 字
+  - 错误明细（如有）
+
+  ## 安全边界
+
+  - 不发布政治、社会争议、医疗、金融等高风险类别的「断言式」想法
+  - 不复制粘贴原素材（违反平台原创要求），必须改写
+  - 不使用任何引流外链（个人微信 / 公众号 / 私域）
+config_schema:
+  - key: source_type
+    label: 素材来源类型
+    type: select
+    required: true
+    default: text
+    options:
+      - label: 文本片段
+        value: text
+      - label: 本地文件路径
+        value: file
+      - label: RSS / Atom 源
+        value: rss
+      - label: 仅手动触发时填
+        value: manual
+  - key: source_value
+    label: 素材内容/路径
+    type: text
+    required: false
+    placeholder: https://example.com/feed.xml 或 /path/to/notes.md 或一段灵感原文
+    description: 根据 source_type 填对应内容；manual 模式可留空
+  - key: tone
+    label: 语气描述
+    type: text
+    required: true
+    default: 工程师视角，口语化，犀利不端着
+    description: 描述想法的语气和人设，AI 据此改写
+  - key: topic_hint
+    label: 主题提示
+    type: string
+    required: false
+    placeholder: AI / 大模型 / Agent 工具链
+    description: 提示 AI 从素材里挑哪个角度切入；留空让 AI 自己选
+  - key: max_pins_per_run
+    label: 单次最大发布数
+    type: number
+    required: true
+    default: 1
+    description: 每次运行最多发几条想法（建议 ≤ 2 防风控）
+subscriptions:
+  - id: pin-publish
+    source:
+      type: schedule
+      config:
+        every: 6h
+    frequency:
+      default: 6h
+      min: 2h
+      max: 24h
+requires:
+  mcps:
+    - id: ai-browser
+      reason: 打开知乎主页并通过 zhihu-publish-pin skill 发布想法
+  skills:
+    - id: openkursar/zhihu-publish-pin
+      reason: 通过 ClipboardEvent 注入 Draft.js 编辑器并发布想法，XHR + DOM 双路确认成功
+memory_schema:
+  published_pins:
+    type: array
+    description: 最近发布的想法记录（pin_id, pin_url, content_summary, status, published_at），保留最近 100 条
+  errors:
+    type: array
+    description: 最近的错误记录（保留 20 条）
+  last_run_at:
+    type: date
+    description: 最近一次运行时间
+output:
+  notify:
+    system: true
+  format: markdown
+browser_login:
+  - url: https://www.zhihu.com/
+    label: 知乎
+permissions:
+  - ai-browser
+escalation:
+  enabled: true
+  timeout_hours: 48
+store:
+  slug: openkursar/zhihu-pin-publisher
+  category: content
+  tags:
+    - zhihu
+    - pin
+    - publishing
+    - content
+    - automation
+    - 知乎
+    - 想法
+    - 短动态
+    - 内容创作
+  locale: zh-CN
+  min_app_version: 0.5.0
+  license: MIT
+  repository: https://github.com/openkursar/digital-human-protocol
+  meta:
+    rank: 5
+i18n:
+  en-US:
+    name: Zhihu Pin Publisher
+    description: Rewrites external material (files / RSS / clipboard / custom prompt) into Zhihu-style "pins" (short posts) on a schedule. Keeps the account active without manual daily authoring.
+    config_schema:
+      source_type:
+        label: Source Type
+        description: Where the raw material comes from
+      source_value:
+        label: Source Path / Content
+        description: Content matching source_type (URL for RSS, path for file, plain text for text)
+      tone:
+        label: Tone
+        description: Voice and persona description; the AI rewrites the source to match
+      topic_hint:
+        label: Topic Hint
+        description: Optional angle to focus on; leave blank to let the AI pick
+      max_pins_per_run:
+        label: Max Pins per Run
+        description: How many pins to publish per scheduled run (≤2 recommended to avoid platform throttling)

@@ -141,14 +141,9 @@ func (s *Server) handlePublish(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "validate spec: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	// version is guaranteed by spec.Validate above. Slug() falls back to a
-	// derivation from name; only fail when even that produces nothing
-	// (e.g. a name with no ASCII alphanumerics), and tell the user exactly
-	// what to do about it.
-	if parsed.Slug() == "" {
-		http.Error(w,
-			fmt.Sprintf("cannot derive a registry slug from name %q (no ASCII alphanumerics) — set spec.store.slug explicitly", parsed.Name),
-			http.StatusBadRequest)
+	// Enforce scoped slug ("author/app-id") and author-prefix consistency.
+	if err := spec.ValidatePublish(parsed); err != nil {
+		http.Error(w, "publish validation: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
