@@ -64,14 +64,6 @@ description: d
 type: skill
 system_prompt: x
 `,
-		"automation missing subs": `
-name: x
-version: "1.0.0"
-author: a
-description: d
-type: automation
-system_prompt: x
-`,
 		"skill must not have subs": `
 name: x
 version: "1.0.0"
@@ -105,6 +97,44 @@ type: mcp
 				t.Fatalf("expected *ValidationError, got %T", err)
 			}
 		})
+	}
+}
+
+func TestDeriveSlug(t *testing.T) {
+	cases := map[string]string{
+		"hn-daily":               "hn-daily",
+		"HN Daily":               "hn-daily",
+		"  My  App  ":            "my-app",
+		"Foo!!! Bar???":          "foo-bar",
+		"Already-Slug":           "already-slug",
+		"foo--bar":               "foo-bar",
+		"---weird---":            "weird",
+		"v2.1 release":           "v2-1-release",
+		"中文名":                    "", // no ASCII alphanumerics; caller must error
+		"中文 mixed Name":          "mixed-name",
+	}
+	for in, want := range cases {
+		if got := DeriveSlug(in); got != want {
+			t.Errorf("DeriveSlug(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestSlugFallsBackToDerivation(t *testing.T) {
+	body := `
+name: HN Daily
+version: "1.0.0"
+author: a
+description: d
+type: automation
+system_prompt: x
+`
+	s, err := Parse([]byte(body))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if got := s.Slug(); got != "hn-daily" {
+		t.Fatalf("Slug() = %q, want %q (derived from name)", got, "hn-daily")
 	}
 }
 

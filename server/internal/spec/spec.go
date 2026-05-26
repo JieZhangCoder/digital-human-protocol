@@ -274,9 +274,8 @@ func Validate(s *Spec) error {
 		if strings.TrimSpace(s.SystemPrompt) == "" {
 			v.add("system_prompt is required for type:automation")
 		}
-		if len(s.Subscriptions) == 0 {
-			v.add("at least one subscription is required for type:automation")
-		}
+		// subscriptions are optional: automations may be triggered manually
+		// (or by other automations) without any schedule/event source.
 	case TypeSkill:
 		// system_prompt is recommended for skills but not strictly required:
 		// Claude Code-style skills carry their instructions in SKILL.md (which
@@ -317,10 +316,35 @@ func Validate(s *Spec) error {
 
 func (v *ValidationError) add(msg string) { v.Issues = append(v.Issues, msg) }
 
-// Slug returns the registry slug, falling back to a best-effort identifier.
+// Slug returns the registry slug. If store.slug is unset, derives one from
+// name so clients are not forced to populate publish-only metadata for specs
+// that already run fine locally. Returns "" only when derivation also fails
+// (e.g. a name containing no ASCII alphanumerics).
 func (s *Spec) Slug() string {
 	if s.Store != nil && s.Store.Slug != "" {
 		return s.Store.Slug
 	}
-	return ""
+	return DeriveSlug(s.Name)
+}
+
+// DeriveSlug converts an arbitrary display name into a registry-safe slug:
+// lowercase, runs of non-alphanumerics collapsed to a single hyphen, edge
+// hyphens trimmed. Returns "" when the input has no usable characters.
+//
+// Kept in sync with the client-side derivation in
+// halo/src/main/store/publish/spec-enrich.ts so any spec a client accepts
+// can be published.
+func DeriveSlug(name string) string {
+	var b strings.Builder
+	prevHyphen := false
+	for _, r := range strings.ToLower(name) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+			prevHyphen = false
+		} else if b.Len() > 0 && !prevHyphen {
+			b.WriteRune('-')
+			prevHyphen = true
+		}
+	}
+	return strings.TrimRight(b.String(), "-")
 }

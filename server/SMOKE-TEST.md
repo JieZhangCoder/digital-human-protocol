@@ -95,7 +95,7 @@ go run ./cmd/registry --config=/tmp/dhp-smoke-config.yaml
 ```bash
 # 在第二个终端：
 cd halo
-HALO_PRODUCT=enterprise npm run dev    # 用 webank 配置启动开发版
+HALO_PRODUCT=enterprise npm run dev    # 用企业版配置启动开发版
 ```
 
 ### 2.2 手工 checklist

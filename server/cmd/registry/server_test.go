@@ -356,6 +356,179 @@ func TestIndexEnvelopeShape(t *testing.T) {
 	}
 }
 
+// TestIndexEntryHasFormat pins the per-app shape inside the index envelope:
+// every entry must carry `format: "bundle"`. The Halo client's
+// RegistryEntrySchema declares this field with z.literal('bundle'); skipping
+// it makes every entry fail validation and the whole sync drop to zero rows.
+func TestIndexEntryHasFormat(t *testing.T) {
+	srv, _ := newTestServer(t)
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	w, err := mw.CreateFormFile("spec", "spec.yaml")
+	if err != nil {
+		t.Fatalf("part: %v", err)
+	}
+	io.WriteString(w, validSpec)
+	mw.Close()
+
+	req, _ := http.NewRequest(http.MethodPost, ts.URL+"/apps", body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("publish: %v", err)
+	}
+	resp.Body.Close()
+
+	resp2, err := http.Get(ts.URL + "/digital-humans.json")
+	if err != nil {
+		t.Fatalf("get digital-humans.json: %v", err)
+	}
+	raw, _ := io.ReadAll(resp2.Body)
+	resp2.Body.Close()
+
+	var decoded struct {
+		Apps []map[string]any `json:"apps"`
+	}
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("decode: %v body=%s", err, raw)
+	}
+	if len(decoded.Apps) == 0 {
+		t.Fatalf("expected at least one app entry, got 0 (body=%s)", raw)
+	}
+	for i, app := range decoded.Apps {
+		format, ok := app["format"]
+		if !ok {
+			t.Errorf("apps[%d] missing required `format` field (body=%s)", i, raw)
+			continue
+		}
+		if format != "bundle" {
+			t.Errorf("apps[%d].format expected \"bundle\", got %q", i, format)
+		}
+	}
+}
+
+// TestArtifactRouteShapes exhaustively pins every URL shape the Halo client
+// constructs to fetch published artifacts. Each row publishes a single spec
+// then asserts that BOTH spec.yaml and an auxiliary file are reachable. Any
+// silent route regression here cascades into store detail-view 404s.
+func TestArtifactRouteShapes(t *testing.T) {
+	cases := []struct {
+		name string
+		spec string // YAML spec body
+	}{
+		{
+			name: "scoped slug",
+			spec: `
+spec_version: "1"
+name: Scoped Skill
+version: "1.0.0"
+author: alice
+description: Skill with scoped slug.
+type: skill
+system_prompt: |
+  Hi.
+store:
+  slug: alice/scoped-skill
+`,
+		},
+		{
+			name: "flat slug",
+			spec: `
+spec_version: "1"
+name: Flat Skill
+version: "2.0.0"
+author: bob
+description: Skill with flat slug.
+type: skill
+system_prompt: |
+  Hi.
+store:
+  slug: flat-skill
+`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			srv, _ := newTestServer(t)
+			ts := httptest.NewServer(srv.Handler())
+			defer ts.Close()
+
+			// Publish: spec + one auxiliary file under files/SKILL.md
+			body := &bytes.Buffer{}
+			mw := multipart.NewWriter(body)
+			w, err := mw.CreateFormFile("spec", "spec.yaml")
+			if err != nil {
+				t.Fatalf("part spec: %v", err)
+			}
+			io.WriteString(w, tc.spec)
+			w2, err := mw.CreateFormFile("SKILL.md", "SKILL.md")
+			if err != nil {
+				t.Fatalf("part SKILL.md: %v", err)
+			}
+			io.WriteString(w2, "# Hello from "+tc.name)
+			mw.Close()
+
+			req, _ := http.NewRequest(http.MethodPost, ts.URL+"/apps", body)
+			req.Header.Set("Content-Type", mw.FormDataContentType())
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatalf("publish: %v", err)
+			}
+			pubBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if resp.StatusCode != 200 {
+				t.Fatalf("publish status %d body=%s", resp.StatusCode, pubBody)
+			}
+			var pub map[string]any
+			if err := json.Unmarshal(pubBody, &pub); err != nil {
+				t.Fatalf("decode publish: %v", err)
+			}
+			specPath, _ := pub["path"].(string)
+			if specPath == "" {
+				t.Fatalf("publish response missing path: %s", pubBody)
+			}
+
+			// Halo client URL shapes:
+			//   1. {base}/{path}/spec.yaml
+			//   2. {base}/{path}/files/SKILL.md
+			for _, target := range []struct {
+				url, expectBodyContains string
+			}{
+				{ts.URL + "/" + specPath + "/spec.yaml", "spec_version"},
+				{ts.URL + "/" + specPath + "/files/SKILL.md", "# Hello from "},
+			} {
+				r, err := http.Get(target.url)
+				if err != nil {
+					t.Fatalf("get %s: %v", target.url, err)
+				}
+				raw, _ := io.ReadAll(r.Body)
+				r.Body.Close()
+				if r.StatusCode != 200 {
+					t.Errorf("%s: expected 200, got %d body=%s", target.url, r.StatusCode, raw)
+					continue
+				}
+				if !strings.Contains(string(raw), target.expectBodyContains) {
+					t.Errorf("%s: body %q did not contain %q", target.url, raw, target.expectBodyContains)
+				}
+			}
+
+			// Negative case: a path that doesn't match any known shape must 404.
+			r, err := http.Get(ts.URL + "/" + specPath + "/random-thing")
+			if err != nil {
+				t.Fatalf("get random: %v", err)
+			}
+			r.Body.Close()
+			if r.StatusCode != http.StatusNotFound {
+				t.Errorf("unknown path expected 404, got %d", r.StatusCode)
+			}
+		})
+	}
+}
+
 func TestAuthEnforced(t *testing.T) {
 	srv, _ := newTestServer(t)
 	srv.cfg.Auth.Token = "secret"

@@ -21,7 +21,7 @@ CONFIG     ?= deploy/config.example.yaml
 build:
 	mkdir -p $(BIN_DIR)
 	$(GO) build -trimpath -ldflags="-s -w" -o $(BIN_DIR)/dhp-review ./cmd/dhp-review
-	$(GO) build -trimpath -ldflags="-s -w" -o $(BIN_DIR)/registry   ./cmd/registry
+	$(GO) build -trimpath -ldflags="-s -w" -o $(BIN_DIR)/dhp-registry ./cmd/registry
 
 test:
 	$(GO) test -race -cover $(PKGS)

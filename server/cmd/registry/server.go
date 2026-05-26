@@ -41,6 +41,10 @@ type indexEntry struct {
 	Name        string    `json:"name"`
 	Version     string    `json:"version"`
 	Type        string    `json:"type"`
+	// Format is the packaging format of the published artifact. DHP v2 only
+	// defines "bundle" (spec.yaml + auxiliary files). Halo's adapter requires
+	// this field — keep it stable even though we currently have a single value.
+	Format      string    `json:"format"`
 	Author      string    `json:"author"`
 	Description string    `json:"description"`
 	Path        string    `json:"path"`
@@ -137,8 +141,14 @@ func (s *Server) handlePublish(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "validate spec: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	if parsed.Slug() == "" || parsed.Version == "" {
-		http.Error(w, "spec.store.slug and version are required", http.StatusBadRequest)
+	// version is guaranteed by spec.Validate above. Slug() falls back to a
+	// derivation from name; only fail when even that produces nothing
+	// (e.g. a name with no ASCII alphanumerics), and tell the user exactly
+	// what to do about it.
+	if parsed.Slug() == "" {
+		http.Error(w,
+			fmt.Sprintf("cannot derive a registry slug from name %q (no ASCII alphanumerics) — set spec.store.slug explicitly", parsed.Name),
+			http.StatusBadRequest)
 		return
 	}
 
@@ -303,30 +313,62 @@ func (s *Server) serveLegacyIndex(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleArtifactRoute parses /apps/{slug-or-author}/{id-or-version}/files/...
-// and /apps/{author}/{id}/{version}/files/... and forwards to serveFile.
+// handleArtifactRoute serves every file inside a published bundle directory.
+//
+// Accepted URL shapes:
+//
+//	/apps/<slug>/<version>/spec.yaml                  (flat slug)
+//	/apps/<slug>/<version>/files/<path>               (flat slug)
+//	/apps/<author>/<id>/<version>/spec.yaml           (scoped slug)
+//	/apps/<author>/<id>/<version>/files/<path>        (scoped slug)
+//
+// The path tail after <head> = <slug>/<version> (flat) or
+// <author>/<id>/<version> (scoped) maps verbatim into the bundle directory
+// at apps/<head>/<tail>. The whole bundle layout (spec.yaml at root, files/
+// for auxiliary uploads) is exposed as static files; we don't expose any
+// additional metadata routes.
+//
+// Halo's client adapter requests both spec.yaml and files/ files via this
+// route, so any change here must be mirrored by the route tests in
+// server_test.go (TestArtifactRouteShapes) to avoid silent 404s breaking the
+// store detail view and install flow.
 func (s *Server) handleArtifactRoute(w http.ResponseWriter, r *http.Request) {
 	rest := strings.TrimPrefix(r.URL.Path, "/apps/")
-	idx := strings.Index(rest, "/files/")
-	if idx < 0 {
+	head, tail, ok := splitArtifactPath(rest)
+	if !ok {
 		http.NotFound(w, r)
 		return
 	}
-	head := rest[:idx]
-	tail := rest[idx+len("/files/"):]
-	segments := strings.Split(head, "/")
-	var slug, version string
-	switch len(segments) {
-	case 2:
-		slug, version = segments[0], segments[1]
-	case 3:
-		slug = segments[0] + "/" + segments[1]
-		version = segments[2]
+	s.serveFile(w, r, path.Join("apps", head, tail))
+}
+
+// splitArtifactPath separates "<head>/<tail>" where head is either
+// "<slug>/<version>" or "<author>/<id>/<version>" and tail is everything
+// inside the published bundle (spec.yaml, files/SKILL.md, files/x/y.md, …).
+//
+// We anchor on the well-known tail prefixes ("spec.yaml" or "files/") so
+// scoped slugs (which contain a single extra '/') are unambiguous.
+func splitArtifactPath(rest string) (head, tail string, ok bool) {
+	switch {
+	case strings.HasSuffix(rest, "/spec.yaml"):
+		head = strings.TrimSuffix(rest, "/spec.yaml")
+		tail = "spec.yaml"
 	default:
-		http.NotFound(w, r)
-		return
+		idx := strings.Index(rest, "/files/")
+		if idx < 0 {
+			return "", "", false
+		}
+		head = rest[:idx]
+		tail = "files/" + rest[idx+len("/files/"):]
 	}
-	s.serveFile(w, r, path.Join("apps", slug, version, "files", tail))
+	// head must be exactly <slug>/<version> (2 segments) or
+	// <author>/<id>/<version> (3 segments).
+	switch strings.Count(head, "/") {
+	case 1, 2:
+		return head, tail, true
+	default:
+		return "", "", false
+	}
 }
 
 func (s *Server) serveFile(w http.ResponseWriter, r *http.Request, key string) {
@@ -360,6 +402,7 @@ func (s *Server) upsertIndex(parsed *spec.Spec, keyBase string, size int64, chec
 		Name:        parsed.Name,
 		Version:     parsed.Version,
 		Type:        string(parsed.Type),
+		Format:      "bundle",
 		Author:      parsed.Author,
 		Description: parsed.Description,
 		Path:        keyBase,
