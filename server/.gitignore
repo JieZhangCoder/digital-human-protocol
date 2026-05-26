@@ -16,3 +16,4 @@ dhp-registry.exe
 /test-tmp/
 /coverage.out
 *.test.tmp
+release-stage/
