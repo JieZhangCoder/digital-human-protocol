@@ -81,6 +81,17 @@ func checkPromptQuality(ctx context.Context, opts *Options) Verdict {
 }
 
 func checkMetadataCompliance(ctx context.Context, opts *Options) Verdict {
+	// Skills have no system_prompt or runtime permissions for the AI judge to
+	// cross-check the metadata against, so the rule has no signal to evaluate
+	// and would always fail-open. Mark as skipped (not silently passed) so the
+	// audit log makes the missing coverage visible.
+	if opts.Spec.Type == "skill" {
+		return Verdict{
+			Severity: SeverityPass,
+			Skipped:  true,
+			Message:  "skill type: metadata compliance check not applicable (no system_prompt/permissions to cross-check)",
+		}
+	}
 	prompt := "Check that the name, description and tags accurately reflect the agent's actual behaviour described " +
 		"in system_prompt and permissions. Flag deceptive naming, missing critical disclosures, or impersonation. " +
 		"Verdict pass/warn/fail with one-sentence reason."
